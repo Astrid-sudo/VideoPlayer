@@ -1,0 +1,29 @@
+# Xcode
+#
+
+## User settings
+xcuserdata/
+
+## App packaging
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+.build/
+
+# macOS
+.DS_Store
+
+# Backup files
+*~.nib
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
