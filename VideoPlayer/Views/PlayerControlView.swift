@@ -339,6 +339,6 @@ struct MediaOptionsSheet: View {
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-        PlayerControlView(viewModel: VideoPlayerViewModel(videos: Video.sampleVideos))
+        PlayerControlView(viewModel: DIContainer.shared.makeVideoPlayerViewModel(videos: Video.sampleVideos))
     }
 }
