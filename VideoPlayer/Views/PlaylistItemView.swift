@@ -10,34 +10,24 @@ import SwiftUI
 struct PlaylistItemView: View {
     let video: Video
     let isPlaying: Bool
-    @State private var thumbnail: UIImage?
-    @State private var isLoading = true
 
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail
+            // Thumbnail (預設圖示)
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.3))
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: 120, height: 68)
 
-                if let thumbnail = thumbnail {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 120, height: 68)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else if isLoading {
-                    ProgressView()
-                        .tint(.white)
-                } else {
-                    Image(systemName: "play.rectangle.fill")
-                        .font(.title)
-                        .foregroundColor(.white.opacity(0.8))
-                }
-            }
-            .task {
-                await loadThumbnail()
+                Image(systemName: "play.rectangle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(.white.opacity(0.9))
             }
 
             // Video Info
@@ -76,18 +66,6 @@ struct PlaylistItemView: View {
         .padding(.horizontal, 12)
         .background(isPlaying ? Color.blue.opacity(0.1) : Color.clear)
         .cornerRadius(8)
-    }
-
-    private func loadThumbnail() async {
-        isLoading = true
-        let result = await ThumbnailGenerator.shared.generateThumbnail(from: video.url)
-        print("[PlaylistItem] Thumbnail loaded for \(video.title): \(result != nil ? "✅ Success" : "❌ Failed")")
-        if let result = result {
-            print("[PlaylistItem] Thumbnail size: \(result.size)")
-        }
-        thumbnail = result
-        isLoading = false
-        print("[PlaylistItem] isLoading set to false, thumbnail is \(thumbnail != nil ? "set" : "nil")")
     }
 }
 
