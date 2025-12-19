@@ -46,17 +46,19 @@ struct PlayerControlView: View {
 
     // MARK: - Top Control Bar
 
-    private var topControlBar: some View {
-        HStack {
-            // Back button (exit fullscreen)
-            Button(action: {
-                onFullscreenTap?()
-                onUserInteraction?()
-            }) {
-                Image(systemName: "chevron.left")
-                    .font(.title2)
-                    .foregroundColor(.white)
-            }
+	private var topControlBar: some View {
+		HStack {
+			if isFullscreen {
+				// Back button (exit fullscreen)
+				Button(action: {
+					onFullscreenTap?()
+					onUserInteraction?()
+				}) {
+					Image(systemName: "chevron.left")
+						.font(.title2)
+						.foregroundColor(.white)
+				}
+			}
 
             Spacer()
 
