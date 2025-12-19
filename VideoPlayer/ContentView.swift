@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = DIContainer.shared.makeVideoPlayerViewModel(videos: Video.sampleVideos)
     @StateObject private var orientationManager = OrientationManager()
     @State private var showControls = true
@@ -25,6 +26,24 @@ struct ContentView: View {
                 portraitView(geometry: geometry)
             }
         }
+        .navigationTitle("Video Player")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar(isFullscreen ? .hidden : .visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .toolbarBackground(Color.black, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
             // Auto-enter fullscreen when device rotates to landscape
             // (but only if user didn't manually exit fullscreen)
