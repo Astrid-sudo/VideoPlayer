@@ -251,7 +251,7 @@ struct PlayerControlView: View {
                 .font(.title3)
                 .foregroundColor(.white)
         }
-        .opacity(viewModel.pipController?.isPictureInPicturePossible == true ? 1.0 : 0.5)
+        .opacity(viewModel.isPiPAvailable ? 1.0 : 0.5)
     }
 
     // MARK: - Fullscreen Button

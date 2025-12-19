@@ -6,7 +6,6 @@
 //
 
 import AVFoundation
-import AVKit
 import Combine
 import SwiftUI
 
@@ -34,7 +33,6 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var selectedSubtitleIndex: Int?
 
     // PiP
-    @Published var pipController: AVPictureInPictureController?
     @Published var isPiPAvailable: Bool = false
 
     var currentVideo: Video? {
@@ -162,15 +160,11 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Picture in Picture
 
     func startPictureInPicture() {
-        guard let pipController = pipController,
-              pipController.isPictureInPicturePossible else { return }
-        pipController.startPictureInPicture()
+        layerConnector.startPictureInPicture()
     }
 
     func stopPictureInPicture() {
-        guard let pipController = pipController,
-              pipController.isPictureInPictureActive else { return }
-        pipController.stopPictureInPicture()
+        layerConnector.stopPictureInPicture()
     }
 
     // MARK: - Player Connection
@@ -266,6 +260,19 @@ final class VideoPlayerViewModel: ObservableObject {
         mediaOptionsManager.$selectedSubtitleIndex
             .receive(on: DispatchQueue.main)
             .assign(to: &$selectedSubtitleIndex)
+
+        // PiP bindings
+        layerConnector.isPiPPossiblePublisher
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$isPiPAvailable)
+
+        layerConnector.restoreUIPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                // UI 已經恢復，通知 service
+                self?.layerConnector.pictureInPictureUIRestored()
+            }
+            .store(in: &cancellables)
     }
 
     private func setupRemoteControlCallbacks() {

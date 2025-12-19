@@ -15,6 +15,9 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
 
     var connectLayerCallCount = 0
     var connectedLayer: AVPlayerLayer?
+    var startPiPCallCount = 0
+    var stopPiPCallCount = 0
+    var pipUIRestoredCallCount = 0
     var playCallCount = 0
     var pauseCallCount = 0
     var seekToSeconds: TimeInterval?
@@ -44,11 +47,44 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     let bufferingSubject = PassthroughSubject<BufferingState, Never>()
     let playbackDidEndSubject = PassthroughSubject<Void, Never>()
 
+    // PiP Subjects
+    let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
+    let isPiPActiveSubject = CurrentValueSubject<Bool, Never>(false)
+    let restoreUISubject = PassthroughSubject<Void, Never>()
+
     // MARK: - Player Connection
 
     func connect(layer: AVPlayerLayer) {
         connectLayerCallCount += 1
         connectedLayer = layer
+    }
+
+    // MARK: - PiP Publishers
+
+    var isPiPPossiblePublisher: AnyPublisher<Bool, Never> {
+        isPiPPossibleSubject.eraseToAnyPublisher()
+    }
+
+    var isPiPActivePublisher: AnyPublisher<Bool, Never> {
+        isPiPActiveSubject.eraseToAnyPublisher()
+    }
+
+    var restoreUIPublisher: AnyPublisher<Void, Never> {
+        restoreUISubject.eraseToAnyPublisher()
+    }
+
+    // MARK: - PiP Methods
+
+    func startPictureInPicture() {
+        startPiPCallCount += 1
+    }
+
+    func stopPictureInPicture() {
+        stopPiPCallCount += 1
+    }
+
+    func pictureInPictureUIRestored() {
+        pipUIRestoredCallCount += 1
     }
 
     // MARK: - Protocol Properties
@@ -136,6 +172,9 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     func reset() {
         connectLayerCallCount = 0
         connectedLayer = nil
+        startPiPCallCount = 0
+        stopPiPCallCount = 0
+        pipUIRestoredCallCount = 0
         playCallCount = 0
         pauseCallCount = 0
         seekToSeconds = nil

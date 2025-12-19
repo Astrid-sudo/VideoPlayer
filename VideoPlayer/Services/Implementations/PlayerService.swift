@@ -6,16 +6,23 @@
 //
 
 import AVFoundation
+import AVKit
 import Combine
 
 /// 播放器服務實作
 /// 封裝 AVQueuePlayer，依賴 AVFoundation（最外層）
-final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
+final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Private Properties
 
     private var player: AVQueuePlayer?
     private var timeObserverToken: Any?
+
+    // MARK: - PiP Properties
+
+    private var pipController: AVPictureInPictureController?
+    private var pipPossibleObservation: NSKeyValueObservation?
+    private var restoreUICompletionHandler: ((Bool) -> Void)?
 
     // MARK: - KVO Observers
 
@@ -31,6 +38,11 @@ final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     private let itemStatusSubject = PassthroughSubject<PlaybackItemStatus, Never>()
     private let bufferingSubject = PassthroughSubject<BufferingState, Never>()
     private let playbackDidEndSubject = PassthroughSubject<Void, Never>()
+
+    // PiP Subjects
+    private let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
+    private let isPiPActiveSubject = CurrentValueSubject<Bool, Never>(false)
+    private let restoreUISubject = PassthroughSubject<Void, Never>()
 
     // MARK: - Publishers
 
@@ -54,10 +66,25 @@ final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
         playbackDidEndSubject.eraseToAnyPublisher()
     }
 
+    // MARK: - PiP Publishers
+
+    var isPiPPossiblePublisher: AnyPublisher<Bool, Never> {
+        isPiPPossibleSubject.eraseToAnyPublisher()
+    }
+
+    var isPiPActivePublisher: AnyPublisher<Bool, Never> {
+        isPiPActiveSubject.eraseToAnyPublisher()
+    }
+
+    var restoreUIPublisher: AnyPublisher<Void, Never> {
+        restoreUISubject.eraseToAnyPublisher()
+    }
+
     // MARK: - Player Connection
 
     func connect(layer: AVPlayerLayer) {
         layer.player = player
+        setupPictureInPicture(with: layer)
     }
 
     // MARK: - Protocol Properties
@@ -80,10 +107,48 @@ final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Initialization
 
-    init() {}
+    override init() {
+        super.init()
+    }
 
     deinit {
         cleanup()
+    }
+
+    // MARK: - Picture in Picture
+
+    func startPictureInPicture() {
+        guard let pipController = pipController,
+              pipController.isPictureInPicturePossible else { return }
+        pipController.startPictureInPicture()
+    }
+
+    func stopPictureInPicture() {
+        guard let pipController = pipController,
+              pipController.isPictureInPictureActive else { return }
+        pipController.stopPictureInPicture()
+    }
+
+    func pictureInPictureUIRestored() {
+        restoreUICompletionHandler?(true)
+        restoreUICompletionHandler = nil
+    }
+
+    private func setupPictureInPicture(with layer: AVPlayerLayer) {
+        guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
+        guard layer.player != nil else { return }
+        guard pipController == nil else { return }
+
+        let controller = AVPictureInPictureController(playerLayer: layer)
+        controller?.delegate = self
+        pipController = controller
+
+        // 觀察 PiP 可用狀態
+        pipPossibleObservation = controller?.observe(\.isPictureInPicturePossible, options: [.initial, .new]) { [weak self] controller, _ in
+            DispatchQueue.main.async {
+                self?.isPiPPossibleSubject.send(controller.isPictureInPicturePossible)
+            }
+        }
     }
 
     // MARK: - Playback Control
@@ -270,6 +335,35 @@ final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     private func cleanup() {
         stopTimeObservation()
         clearItemObservers()
+        clearPiPObservers()
         player = nil
+    }
+
+    private func clearPiPObservers() {
+        pipPossibleObservation?.invalidate()
+        pipPossibleObservation = nil
+        pipController = nil
+    }
+}
+
+// MARK: - AVPictureInPictureControllerDelegate
+
+extension PlayerService: AVPictureInPictureControllerDelegate {
+
+    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        isPiPActiveSubject.send(true)
+    }
+
+    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        isPiPActiveSubject.send(false)
+    }
+
+    func pictureInPictureController(
+        _ pictureInPictureController: AVPictureInPictureController,
+        restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
+    ) {
+        // 儲存 completion handler，等 UI 恢復後呼叫
+        restoreUICompletionHandler = completionHandler
+        restoreUISubject.send()
     }
 }
