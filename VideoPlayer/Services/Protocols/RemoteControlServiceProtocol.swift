@@ -63,6 +63,7 @@ struct NowPlayingInfo {
     var elapsedTime: TimeInterval?
     var playbackRate: Float
     var artwork: NowPlayingArtwork?
+    var usePlaceholderArtwork: Bool  // 是否使用預設 Artwork（由 Service 生成）
 
     init(
         title: String? = nil,
@@ -70,7 +71,8 @@ struct NowPlayingInfo {
         duration: TimeInterval? = nil,
         elapsedTime: TimeInterval? = nil,
         playbackRate: Float = 0.0,
-        artwork: NowPlayingArtwork? = nil
+        artwork: NowPlayingArtwork? = nil,
+        usePlaceholderArtwork: Bool = false
     ) {
         self.title = title
         self.artist = artist
@@ -78,6 +80,7 @@ struct NowPlayingInfo {
         self.elapsedTime = elapsedTime
         self.playbackRate = playbackRate
         self.artwork = artwork
+        self.usePlaceholderArtwork = usePlaceholderArtwork
     }
 }
 

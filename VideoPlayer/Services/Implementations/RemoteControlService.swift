@@ -118,20 +118,67 @@ final class RemoteControlService: RemoteControlServiceProtocol {
 
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = info.playbackRate
 
+        // 處理 Artwork
         if let artwork = info.artwork,
            let image = UIImage(data: artwork.imageData) {
             let mpArtwork = MPMediaItemArtwork(boundsSize: artwork.size) { _ in image }
             nowPlayingInfo[MPMediaItemPropertyArtwork] = mpArtwork
+        } else if info.usePlaceholderArtwork {
+            // 生成預設 Artwork
+            if let placeholderImage = createPlaceholderImage() {
+                let size = CGSize(width: 300, height: 300)
+                let mpArtwork = MPMediaItemArtwork(boundsSize: size) { _ in placeholderImage }
+                nowPlayingInfo[MPMediaItemPropertyArtwork] = mpArtwork
+            }
         }
 
         nowPlayingInfoCenter.nowPlayingInfo = nowPlayingInfo
     }
 
+    // MARK: - Private Methods
+
+    private func createPlaceholderImage() -> UIImage? {
+        let size = CGSize(width: 300, height: 300)
+
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            // 漸層背景
+            let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor]
+            let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: colors as CFArray,
+                locations: [0.0, 1.0]
+            )
+
+            if let gradient = gradient {
+                context.cgContext.drawLinearGradient(
+                    gradient,
+                    start: CGPoint(x: 0, y: 0),
+                    end: CGPoint(x: size.width, y: size.height),
+                    options: []
+                )
+            }
+
+            // 播放圖示
+            let playIconSize: CGFloat = 80
+            let playIconRect = CGRect(
+                x: (size.width - playIconSize) / 2,
+                y: (size.height - playIconSize) / 2,
+                width: playIconSize,
+                height: playIconSize
+            )
+
+            let config = UIImage.SymbolConfiguration(pointSize: playIconSize, weight: .light)
+            if let playIcon = UIImage(systemName: "play.circle.fill", withConfiguration: config) {
+                playIcon.withTintColor(.white, renderingMode: .alwaysTemplate)
+                    .draw(in: playIconRect, blendMode: .normal, alpha: 0.8)
+            }
+        }
+    }
+
     func clearNowPlayingInfo() {
         nowPlayingInfoCenter.nowPlayingInfo = nil
     }
-
-    // MARK: - Private Methods
 
     private func removeAllTargets() {
         commandCenter.playCommand.removeTarget(nil)

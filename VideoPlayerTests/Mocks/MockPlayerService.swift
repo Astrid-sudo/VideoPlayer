@@ -23,12 +23,16 @@ final class MockPlayerService: PlayerServiceProtocol {
     var advanceToNextItemCallCount = 0
     var startTimeObservationInterval: TimeInterval?
     var stopTimeObservationCallCount = 0
+    var getMediaOptionsCallCount = 0
+    var selectMediaOptionType: MediaSelectionType?
+    var selectMediaOptionLocale: Any?
 
     // MARK: - Stub Properties (模擬回傳值)
 
     var stubbedCurrentItemDuration: TimeInterval?
     var stubbedCurrentItemCurrentTime: TimeInterval?
     var stubbedCurrentRate: Float = 0
+    var stubbedMediaOptions: MediaSelectionOptions?
 
     // MARK: - Subjects (發送事件)
 
@@ -110,6 +114,16 @@ final class MockPlayerService: PlayerServiceProtocol {
         stopTimeObservationCallCount += 1
     }
 
+    func getMediaOptions() -> MediaSelectionOptions? {
+        getMediaOptionsCallCount += 1
+        return stubbedMediaOptions
+    }
+
+    func selectMediaOption(type: MediaSelectionType, locale: Any?) {
+        selectMediaOptionType = type
+        selectMediaOptionLocale = locale
+    }
+
     // MARK: - Helper Methods (測試用)
 
     func reset() {
@@ -123,5 +137,9 @@ final class MockPlayerService: PlayerServiceProtocol {
         advanceToNextItemCallCount = 0
         startTimeObservationInterval = nil
         stopTimeObservationCallCount = 0
+        getMediaOptionsCallCount = 0
+        selectMediaOptionType = nil
+        selectMediaOptionLocale = nil
+        stubbedMediaOptions = nil
     }
 }

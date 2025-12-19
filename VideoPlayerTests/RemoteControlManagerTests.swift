@@ -174,7 +174,7 @@ struct RemoteControlManagerTests {
         #expect(mockService.lastNowPlayingInfo?.playbackRate == 1.5)
     }
 
-    @Test func updateNowPlayingInfoCreatesArtwork() {
+    @Test func updateNowPlayingInfoSetsUsePlaceholderArtwork() {
         let (sut, mockService) = makeSUT()
 
         sut.updateNowPlayingInfo(
@@ -185,7 +185,7 @@ struct RemoteControlManagerTests {
             playbackRate: 1.0
         )
 
-        #expect(mockService.lastNowPlayingInfo?.artwork != nil)
+        #expect(mockService.lastNowPlayingInfo?.usePlaceholderArtwork == true)
     }
 
     // MARK: - Clear Now Playing Info Tests

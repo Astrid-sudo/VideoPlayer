@@ -131,6 +131,46 @@ final class PlayerService: PlayerServiceProtocol {
         observeCurrentItem()
     }
 
+    // MARK: - Media Options
+
+    func getMediaOptions() -> MediaSelectionOptions? {
+        guard let currentItem = player?.currentItem else { return nil }
+
+        var audioOptions = [MediaSelectionOption]()
+        var subtitleOptions = [MediaSelectionOption]()
+
+        for characteristic in currentItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
+            if characteristic == .audible,
+               let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) {
+                audioOptions = group.options.map { option in
+                    MediaSelectionOption(displayName: option.displayName, locale: option.locale)
+                }
+            }
+            if characteristic == .legible,
+               let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) {
+                subtitleOptions = group.options.map { option in
+                    MediaSelectionOption(displayName: option.displayName, locale: option.locale)
+                }
+            }
+        }
+
+        return MediaSelectionOptions(audioOptions: audioOptions, subtitleOptions: subtitleOptions)
+    }
+
+    func selectMediaOption(type: MediaSelectionType, locale: Any?) {
+        guard let currentItem = player?.currentItem else { return }
+
+        let characteristic: AVMediaCharacteristic = (type == .audio) ? .audible : .legible
+        guard let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) else { return }
+
+        if let locale = locale as? Locale {
+            let options = AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
+            if let option = options.first {
+                currentItem.select(option, in: group)
+            }
+        }
+    }
+
     // MARK: - Time Observation
 
     func startTimeObservation(interval: TimeInterval) {

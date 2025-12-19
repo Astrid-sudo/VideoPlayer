@@ -77,9 +77,35 @@ protocol PlayerServiceProtocol: AnyObject {
 
     /// 播放結束通知
     var playbackDidEndPublisher: AnyPublisher<Void, Never> { get }
+
+    // MARK: - Media Options
+
+    /// 取得當前播放項目的媒體選項
+    func getMediaOptions() -> MediaSelectionOptions?
+
+    /// 選擇媒體選項（音軌或字幕）
+    func selectMediaOption(type: MediaSelectionType, locale: Any?)
 }
 
 // MARK: - Supporting Types
+
+/// 媒體選擇類型
+enum MediaSelectionType {
+    case audio
+    case subtitle
+}
+
+/// 媒體選項資訊
+struct MediaSelectionOption {
+    let displayName: String
+    let locale: Any?  // 內部使用 Locale，但對外隱藏型別
+}
+
+/// 媒體選項集合
+struct MediaSelectionOptions {
+    let audioOptions: [MediaSelectionOption]
+    let subtitleOptions: [MediaSelectionOption]
+}
 
 /// 播放項目狀態
 enum PlaybackItemStatus {

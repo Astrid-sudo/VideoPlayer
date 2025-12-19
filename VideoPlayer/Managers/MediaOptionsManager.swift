@@ -5,11 +5,11 @@
 //  Created by Astrid Lin on 2025/12/18.
 //
 
-import AVFoundation
+import Foundation
 import Combine
 
 /// 媒體選項（字幕/音軌）業務邏輯
-/// 依賴 PlayerServiceProtocol，透過 underlyingPlayer 存取 AVPlayer
+/// 依賴 PlayerServiceProtocol，不直接依賴 AVFoundation
 final class MediaOptionsManager {
 
     // MARK: - Dependencies
@@ -26,11 +26,6 @@ final class MediaOptionsManager {
 
     private var cancellables = Set<AnyCancellable>()
 
-    private var currentItem: AVPlayerItem? {
-        guard let player = playerService.underlyingPlayer as? AVQueuePlayer else { return nil }
-        return player.currentItem
-    }
-
     // MARK: - Initialization
 
     init(playerService: PlayerServiceProtocol) {
@@ -42,31 +37,30 @@ final class MediaOptionsManager {
 
     /// 選擇媒體選項（音軌或字幕）
     func selectOption(type: MediaOptionType, index: Int) {
-        guard let currentItem = currentItem,
-              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: type.avMediaCharacteristic) else {
-            return
-        }
+        guard let mediaOption = mediaOption else { return }
 
-        let displayNameLocaleArray: [DisplayNameLocale]?
+        let options: [DisplayNameLocale]
+        let selectionType: MediaSelectionType
+
         switch type {
         case .audio:
-            displayNameLocaleArray = mediaOption?.avMediaCharacteristicAudible
+            options = mediaOption.avMediaCharacteristicAudible
+            selectionType = .audio
         case .subtitle:
-            displayNameLocaleArray = mediaOption?.avMediaCharacteristicLegible
+            options = mediaOption.avMediaCharacteristicLegible
+            selectionType = .subtitle
         }
 
-        guard let locale = displayNameLocaleArray?[safe: index]?.locale else { return }
+        guard index >= 0 && index < options.count else { return }
 
-        let options = AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
-        if let option = options.first {
-            currentItem.select(option, in: group)
+        let locale = options[index].locale
+        playerService.selectMediaOption(type: selectionType, locale: locale)
 
-            switch type {
-            case .audio:
-                selectedAudioIndex = index
-            case .subtitle:
-                selectedSubtitleIndex = index
-            }
+        switch type {
+        case .audio:
+            selectedAudioIndex = index
+        case .subtitle:
+            selectedSubtitleIndex = index
         }
     }
 
@@ -89,21 +83,17 @@ final class MediaOptionsManager {
     }
 
     private func loadMediaOptions() {
-        guard let currentItem = currentItem else {
+        guard let options = playerService.getMediaOptions() else {
             mediaOption = nil
             return
         }
 
-        var audibleOptions = [DisplayNameLocale]()
-        var legibleOptions = [DisplayNameLocale]()
+        let audibleOptions = options.audioOptions.map { option in
+            DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
+        }
 
-        for characteristic in currentItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
-            if characteristic == .audible {
-                audibleOptions = getMediaOptionDetails(for: characteristic)
-            }
-            if characteristic == .legible {
-                legibleOptions = getMediaOptionDetails(for: characteristic)
-            }
+        let legibleOptions = options.subtitleOptions.map { option in
+            DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
         }
 
         mediaOption = MediaOption(
@@ -114,27 +104,5 @@ final class MediaOptionsManager {
         // 重置選擇
         selectedAudioIndex = nil
         selectedSubtitleIndex = nil
-    }
-
-    private func getMediaOptionDetails(for characteristic: AVMediaCharacteristic) -> [DisplayNameLocale] {
-        guard let currentItem = currentItem,
-              let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) else {
-            return []
-        }
-
-        return group.options.map { option in
-            DisplayNameLocale(
-                displayName: option.displayName,
-                locale: option.locale
-            )
-        }
-    }
-}
-
-// MARK: - Array Extension
-
-private extension Array {
-    subscript(safe index: Index) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }
