@@ -17,7 +17,7 @@ final class DIContainer {
 
     // MARK: - Services (Lazy Singletons)
 
-    private lazy var playerService: PlayerServiceProtocol = {
+    private lazy var playerService: PlayerService = {
         PlayerService()
     }()
 
@@ -39,6 +39,7 @@ final class DIContainer {
     func makeVideoPlayerViewModel(videos: [Video]) -> VideoPlayerViewModel {
         VideoPlayerViewModel(
             playerService: playerService,
+            layerConnector: playerService,
             audioSessionService: audioSessionService,
             remoteControlService: remoteControlService,
             videos: videos

@@ -10,7 +10,7 @@ import Combine
 
 /// 播放器服務實作
 /// 封裝 AVQueuePlayer，依賴 AVFoundation（最外層）
-final class PlayerService: PlayerServiceProtocol {
+final class PlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Private Properties
 
@@ -54,11 +54,13 @@ final class PlayerService: PlayerServiceProtocol {
         playbackDidEndSubject.eraseToAnyPublisher()
     }
 
-    // MARK: - Protocol Properties
+    // MARK: - Player Connection
 
-    var underlyingPlayer: Any? {
-        player
+    func connect(layer: AVPlayerLayer) {
+        layer.player = player
     }
+
+    // MARK: - Protocol Properties
 
     var currentItemDuration: TimeInterval? {
         guard let duration = player?.currentItem?.duration,

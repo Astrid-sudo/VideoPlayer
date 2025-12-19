@@ -9,12 +9,15 @@ import SwiftUI
 import AVKit
 
 struct PlayerView: UIViewRepresentable {
-    let player: AVPlayer?
+    let onLayerReady: (AVPlayerLayer) -> Void
     @Binding var pipController: AVPictureInPictureController?
     @Binding var isPiPAvailable: Bool
 
     func makeUIView(context: Context) -> PlayerUIView {
-        let view = PlayerUIView(player: player)
+        let view = PlayerUIView()
+
+        // 連接 player layer 到 service
+        onLayerReady(view.playerLayer)
 
         // Store the view reference in coordinator for later PiP setup
         context.coordinator.playerView = view
@@ -30,8 +33,6 @@ struct PlayerView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: PlayerUIView, context: Context) {
-        uiView.player = player
-
         // Try to setup PiP controller if not already done
         if pipController == nil {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -120,9 +121,8 @@ class PlayerUIView: UIView {
         }
     }
 
-    init(player: AVPlayer?) {
+    init() {
         super.init(frame: .zero)
-        self.player = player
         playerLayer.videoGravity = .resizeAspect
         backgroundColor = .black
     }

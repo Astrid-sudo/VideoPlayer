@@ -12,11 +12,6 @@ import Combine
 /// 依賴 Foundation 和 Combine
 protocol PlayerServiceProtocol: AnyObject {
 
-    // MARK: - Player Access
-
-    /// 底層播放器（供 View 層使用，需自行轉型為 AVPlayer）
-    var underlyingPlayer: Any? { get }
-
     // MARK: - State
 
     /// 當前播放項目的時長（秒）

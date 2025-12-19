@@ -42,11 +42,6 @@ final class VideoPlayerViewModel: ObservableObject {
         return videos[currentVideoIndex]
     }
 
-    /// 供 PlayerView 使用的 AVPlayer
-    var player: AVPlayer? {
-        playerService.underlyingPlayer as? AVPlayer
-    }
-
     // MARK: - Managers
 
     private let playbackManager: PlaybackManager
@@ -54,9 +49,9 @@ final class VideoPlayerViewModel: ObservableObject {
     private let mediaOptionsManager: MediaOptionsManager
     private let remoteControlManager: RemoteControlManager
 
-    // MARK: - Services (for direct access)
+    // MARK: - Layer Connection
 
-    private let playerService: PlayerServiceProtocol
+    private let layerConnector: PlayerLayerConnectable
 
     // MARK: - Private Properties
 
@@ -67,11 +62,12 @@ final class VideoPlayerViewModel: ObservableObject {
 
     init(
         playerService: PlayerServiceProtocol,
+        layerConnector: PlayerLayerConnectable,
         audioSessionService: AudioSessionServiceProtocol,
         remoteControlService: RemoteControlServiceProtocol,
         videos: [Video]
     ) {
-        self.playerService = playerService
+        self.layerConnector = layerConnector
         self.videos = videos
 
         // 建立 Managers
@@ -175,6 +171,13 @@ final class VideoPlayerViewModel: ObservableObject {
         guard let pipController = pipController,
               pipController.isPictureInPictureActive else { return }
         pipController.stopPictureInPicture()
+    }
+
+    // MARK: - Player Connection
+
+    /// 連接 PlayerView 的 layer 到播放器
+    func connectPlayerLayer(_ layer: AVPlayerLayer) {
+        layerConnector.connect(layer: layer)
     }
 
     // MARK: - Private Methods

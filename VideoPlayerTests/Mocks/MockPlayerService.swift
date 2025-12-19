@@ -5,14 +5,16 @@
 //  Created by Astrid Lin on 2025/12/18.
 //
 
-import Foundation
+import AVFoundation
 import Combine
 @testable import VideoPlayer
 
-final class MockPlayerService: PlayerServiceProtocol {
+final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Spy Properties (記錄呼叫)
 
+    var connectLayerCallCount = 0
+    var connectedLayer: AVPlayerLayer?
     var playCallCount = 0
     var pauseCallCount = 0
     var seekToSeconds: TimeInterval?
@@ -42,9 +44,14 @@ final class MockPlayerService: PlayerServiceProtocol {
     let bufferingSubject = PassthroughSubject<BufferingState, Never>()
     let playbackDidEndSubject = PassthroughSubject<Void, Never>()
 
-    // MARK: - Protocol Properties
+    // MARK: - Player Connection
 
-    var underlyingPlayer: Any? { nil }
+    func connect(layer: AVPlayerLayer) {
+        connectLayerCallCount += 1
+        connectedLayer = layer
+    }
+
+    // MARK: - Protocol Properties
 
     var currentItemDuration: TimeInterval? { stubbedCurrentItemDuration }
 
@@ -127,6 +134,8 @@ final class MockPlayerService: PlayerServiceProtocol {
     // MARK: - Helper Methods (測試用)
 
     func reset() {
+        connectLayerCallCount = 0
+        connectedLayer = nil
         playCallCount = 0
         pauseCallCount = 0
         seekToSeconds = nil

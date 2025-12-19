@@ -72,7 +72,7 @@ struct ContentView: View {
     private func playerSection(geometry: GeometryProxy, height: CGFloat) -> some View {
         ZStack {
             // Player
-            PlayerView(player: viewModel.player, pipController: $viewModel.pipController, isPiPAvailable: $viewModel.isPiPAvailable)
+            PlayerView(onLayerReady: viewModel.connectPlayerLayer, pipController: $viewModel.pipController, isPiPAvailable: $viewModel.isPiPAvailable)
                 .frame(height: height)
                 .background(Color.black)
 
