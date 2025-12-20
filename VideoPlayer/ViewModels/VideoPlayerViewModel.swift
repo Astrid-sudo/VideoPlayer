@@ -48,6 +48,10 @@ final class VideoPlayerViewModel: ObservableObject {
 
     private let layerConnector: PlayerLayerConnectable
 
+    // MARK: - Network Monitoring
+
+    private let networkMonitor: NetworkMonitorProtocol
+
     // MARK: - Private Properties
 
     private var cancellables = Set<AnyCancellable>()
@@ -60,12 +64,14 @@ final class VideoPlayerViewModel: ObservableObject {
         layerConnector: PlayerLayerConnectable,
         audioSessionService: AudioSessionServiceProtocol,
         remoteControlService: RemoteControlServiceProtocol,
+        networkMonitor: NetworkMonitorProtocol,
         videos: [Video]
     ) {
         self.layerConnector = layerConnector
+        self.networkMonitor = networkMonitor
         self.videos = videos
 
-        // 建立 Managers
+        // Create Managers
         self.playbackManager = PlaybackManager(
             playerService: playerService,
             audioSessionService: audioSessionService,
@@ -85,7 +91,7 @@ final class VideoPlayerViewModel: ObservableObject {
         setupNetworkMonitoring()
     }
 
-    /// 便利初始化器：自動創建所有依賴
+    /// Convenience initializer: auto-create all dependencies
     convenience init(videos: [Video]) {
         let playerService = PlayerService()
         self.init(
@@ -93,6 +99,7 @@ final class VideoPlayerViewModel: ObservableObject {
             layerConnector: playerService,
             audioSessionService: AudioSessionService(),
             remoteControlService: RemoteControlService(),
+            networkMonitor: NetworkMonitor.shared,
             videos: videos
         )
     }
@@ -269,7 +276,7 @@ final class VideoPlayerViewModel: ObservableObject {
     }
 
     private func setupNetworkMonitoring() {
-        NetworkMonitor.shared.$isConnected
+        networkMonitor.isConnectedPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isConnected in
                 guard let self = self, isConnected else { return }

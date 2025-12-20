@@ -9,12 +9,15 @@ import Network
 import Combine
 
 /// Network status monitoring service
-final class NetworkMonitor: ObservableObject {
+final class NetworkMonitor: NetworkMonitorProtocol {
 
     static let shared = NetworkMonitor()
 
-    @Published private(set) var isConnected: Bool = true
+    var isConnectedPublisher: AnyPublisher<Bool, Never> {
+        isConnectedSubject.eraseToAnyPublisher()
+    }
 
+    private let isConnectedSubject = CurrentValueSubject<Bool, Never>(true)
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitor")
 
@@ -25,7 +28,7 @@ final class NetworkMonitor: ObservableObject {
     private func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
-                self?.isConnected = path.status == .satisfied
+                self?.isConnectedSubject.send(path.status == .satisfied)
             }
         }
         monitor.start(queue: queue)
