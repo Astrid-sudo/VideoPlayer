@@ -26,6 +26,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - KVO Observers
 
+    private var currentItemObserver: NSKeyValueObservation?
     private var statusObserver: NSKeyValueObservation?
     private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
     private var isPlaybackBufferFullObserver: NSKeyValueObservation?
@@ -175,7 +176,18 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     func setPlaylist(urls: [URL]) {
         let items = urls.map { AVPlayerItem(url: $0) }
         player = AVQueuePlayer(items: items)
-        observeCurrentItem()
+        observeQueueItemChange()
+        observeItemPlaybackState()
+    }
+
+    /// 觀察 AVQueuePlayer 的 currentItem 變化（自動換集時觸發）
+    private func observeQueueItemChange() {
+        currentItemObserver?.invalidate()
+        currentItemObserver = player?.observe(\.currentItem, options: [.new, .old]) { [weak self] _, change in
+            // 確保是真的換了一個 item（不是 nil → item 的初始化）
+            guard change.oldValue != nil, change.newValue != nil else { return }
+            self?.observeItemPlaybackState()
+        }
     }
 
     func rebuildQueue(from urls: [URL], startingAt index: Int) {
@@ -190,12 +202,12 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             player?.insert(item, after: nil)
         }
 
-        observeCurrentItem()
+        observeItemPlaybackState()
     }
 
     func advanceToNextItem() {
         player?.advanceToNextItem()
-        observeCurrentItem()
+        observeItemPlaybackState()
     }
 
     // MARK: - Media Options
@@ -262,7 +274,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Private Methods
 
-    private func observeCurrentItem() {
+    private func observeItemPlaybackState() {
         // 清除舊的觀察者
         clearItemObservers()
 
@@ -332,9 +344,15 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
     }
 
+    private func clearPlayerObservers() {
+        currentItemObserver?.invalidate()
+        currentItemObserver = nil
+    }
+
     private func cleanup() {
         stopTimeObservation()
         clearItemObservers()
+        clearPlayerObservers()
         clearPiPObservers()
         player = nil
     }
