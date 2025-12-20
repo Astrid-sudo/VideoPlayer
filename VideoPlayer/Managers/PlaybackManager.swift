@@ -62,15 +62,11 @@ final class PlaybackManager {
     func play() {
         playerService.play()
         playerService.setRate(currentRate)
-        isPlaying = true
-        playerService.startTimeObservation(interval: 0.5)
     }
 
     /// 暫停
     func pause() {
         playerService.pause()
-        isPlaying = false
-        playerService.stopTimeObservation()
     }
 
     /// 切換播放/暫停
@@ -216,6 +212,27 @@ final class PlaybackManager {
                 self?.handlePlaybackEnd()
             }
             .store(in: &cancellables)
+
+        // 訂閱播放狀態變化（用於同步 PiP 等外部控制）
+        playerService.isPlayingPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isPlaying in
+                self?.syncPlayingState(isPlaying)
+            }
+            .store(in: &cancellables)
+    }
+
+    /// 同步外部控制（如 PiP）的播放狀態
+    private func syncPlayingState(_ isPlaying: Bool) {
+        guard self.isPlaying != isPlaying else { return }
+        self.isPlaying = isPlaying
+
+        // 同步時間觀察器狀態
+        if isPlaying {
+            playerService.startTimeObservation(interval: 0.5)
+        } else {
+            playerService.stopTimeObservation()
+        }
     }
 
     private func handlePlaybackEnd() {

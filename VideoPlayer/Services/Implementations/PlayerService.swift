@@ -27,6 +27,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     // MARK: - KVO Observers
 
     private var currentItemObserver: NSKeyValueObservation?
+    private var rateObserver: NSKeyValueObservation?
     private var statusObserver: NSKeyValueObservation?
     private var isPlaybackBufferEmptyObserver: NSKeyValueObservation?
     private var isPlaybackBufferFullObserver: NSKeyValueObservation?
@@ -39,6 +40,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     private let itemStatusSubject = PassthroughSubject<PlaybackItemStatus, Never>()
     private let bufferingSubject = PassthroughSubject<BufferingState, Never>()
     private let playbackDidEndSubject = PassthroughSubject<Void, Never>()
+    private let isPlayingSubject = PassthroughSubject<Bool, Never>()
 
     // PiP Subjects
     private let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
@@ -65,6 +67,10 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     var playbackDidEndPublisher: AnyPublisher<Void, Never> {
         playbackDidEndSubject.eraseToAnyPublisher()
+    }
+
+    var isPlayingPublisher: AnyPublisher<Bool, Never> {
+        isPlayingSubject.eraseToAnyPublisher()
     }
 
     // MARK: - PiP Publishers
@@ -180,7 +186,24 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         let items = urls.map { AVPlayerItem(url: $0) }
         player = AVQueuePlayer(items: items)
         observeQueueItemChange()
+        observePlayerRate()
         observeItemPlaybackState()
+    }
+
+    /// 觀察 AVPlayer 的 rate 變化（用於同步 PiP 等外部控制的播放狀態）
+    private func observePlayerRate() {
+        rateObserver?.invalidate()
+        rateObserver = player?.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
+            guard let newRate = change.newValue, let oldRate = change.oldValue else { return }
+            // 只在狀態真正改變時發送（避免重複發送）
+            let wasPlaying = oldRate > 0
+            let isPlaying = newRate > 0
+            if wasPlaying != isPlaying {
+                DispatchQueue.main.async {
+                    self?.isPlayingSubject.send(isPlaying)
+                }
+            }
+        }
     }
 
     /// 觀察 AVQueuePlayer 的 currentItem 變化（自動換集時觸發）
@@ -350,6 +373,8 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     private func clearPlayerObservers() {
         currentItemObserver?.invalidate()
         currentItemObserver = nil
+        rateObserver?.invalidate()
+        rateObserver = nil
     }
 
     private func cleanup() {
