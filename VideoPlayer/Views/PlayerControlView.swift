@@ -94,12 +94,12 @@ struct PlayerControlView: View {
 
         case .playing, .paused:
             HStack(spacing: 60) {
-                // Backward 15 seconds
+                // Backward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.backward(15))
+                    viewModel.jumpToTime(.backward(10))
                     onUserInteraction?()
                 }) {
-                    Image(systemName: "gobackward.15")
+                    Image(systemName: "gobackward.10")
                         .font(.system(size: 40))
                         .foregroundColor(.white)
                 }
@@ -114,12 +114,12 @@ struct PlayerControlView: View {
                         .foregroundColor(.white)
                 }
 
-                // Forward 15 seconds
+                // Forward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.forward(15))
+                    viewModel.jumpToTime(.forward(10))
                     onUserInteraction?()
                 }) {
-                    Image(systemName: "goforward.15")
+                    Image(systemName: "goforward.10")
                         .font(.system(size: 40))
                         .foregroundColor(.white)
                 }
