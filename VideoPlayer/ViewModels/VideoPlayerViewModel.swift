@@ -18,10 +18,8 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var currentTime: String = "00:00"
     @Published var duration: String = "00:00"
     @Published var playProgress: Float = 0
-    @Published var isPlaying: Bool = false
-    @Published var playerState: PlayerState = .unknown
+    @Published var playerState: PlayerState = .loading
     @Published var playSpeedRate: Float = 1.0
-    @Published var showIndicator: Bool = true
 
     // Playlist
     @Published var videos: [Video]
@@ -181,14 +179,17 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func setupBindings() {
-        // PlaybackManager bindings
-        playbackManager.$isPlaying
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isPlaying in
-                self?.isPlaying = isPlaying
-                self?.updateNowPlayingInfo()
-            }
-            .store(in: &cancellables)
+        // Combine itemStatus, bufferingState, isPlaying to determine playerState
+        Publishers.CombineLatest3(
+            playbackManager.$itemStatus,
+            playbackManager.$bufferingState,
+            playbackManager.$isPlaying
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] itemStatus, bufferingState, isPlaying in
+            self?.updatePlayerState(itemStatus: itemStatus, bufferingState: bufferingState, isPlaying: isPlaying)
+        }
+        .store(in: &cancellables)
 
         playbackManager.$currentTime
             .receive(on: DispatchQueue.main)
@@ -205,35 +206,6 @@ final class VideoPlayerViewModel: ObservableObject {
                 self.durationSeconds = duration
                 self.duration = TimeManager.floatToTimecodeString(seconds: Float(duration))
                 self.playbackManager.updateVideoDuration(duration, at: self.currentVideoIndex)
-            }
-            .store(in: &cancellables)
-
-        playbackManager.$itemStatus
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
-                switch status {
-                case .unknown:
-                    self?.playerState = .unknown
-                case .readyToPlay:
-                    if self?.playerState != .playing {
-                        self?.playerState = .readyToPlay
-                    }
-                    self?.updateNowPlayingInfo()
-                case .failed:
-                    self?.playerState = .failed
-                }
-            }
-            .store(in: &cancellables)
-
-        // 結合 itemStatus 和 bufferingState 來決定是否顯示 loading indicator
-        // - itemStatus == .unknown → 影片載入中
-        // - bufferingState == .bufferEmpty → 播放中緩衝不足
-        Publishers.CombineLatest(playbackManager.$itemStatus, playbackManager.$bufferingState)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] itemStatus, bufferingState in
-                let isLoading = itemStatus == .unknown
-                let isBuffering = bufferingState == .bufferEmpty
-                self?.showIndicator = isLoading || isBuffering
             }
             .store(in: &cancellables)
 
@@ -300,7 +272,36 @@ final class VideoPlayerViewModel: ObservableObject {
         playProgress = Float(currentTime / durationSeconds)
     }
 
+    private func updatePlayerState(
+        itemStatus: PlaybackItemStatus,
+        bufferingState: BufferingState,
+        isPlaying: Bool
+    ) {
+        let newState: PlayerState
+
+        switch itemStatus {
+        case .unknown:
+            newState = .loading
+        case .failed:
+            newState = .failed(PlayerError.playbackFailed)
+        case .readyToPlay:
+            if bufferingState == .bufferEmpty {
+                newState = .loading
+            } else if isPlaying {
+                newState = .playing
+            } else {
+                newState = .paused
+            }
+        }
+
+        if playerState != newState {
+            playerState = newState
+            updateNowPlayingInfo()
+        }
+    }
+
     private func updateNowPlayingInfo() {
+        let isPlaying = playerState == .playing
         remoteControlManager.updateNowPlayingInfo(
             title: currentVideo?.title,
             artist: currentVideo?.description,
@@ -308,5 +309,18 @@ final class VideoPlayerViewModel: ObservableObject {
             elapsedTime: playbackManager.currentTime,
             playbackRate: isPlaying ? playSpeedRate : 0
         )
+    }
+}
+
+// MARK: - Player Error
+
+enum PlayerError: LocalizedError {
+    case playbackFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .playbackFailed:
+            return "Failed to play video"
+        }
     }
 }

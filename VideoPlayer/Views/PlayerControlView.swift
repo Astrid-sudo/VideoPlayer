@@ -87,12 +87,13 @@ struct PlayerControlView: View {
 
     @ViewBuilder
     private var centerPlayButton: some View {
-        if viewModel.showIndicator {
-			ProgressView()
-				.scaleEffect(1.5)
-				.tint(.white)
+        switch viewModel.playerState {
+        case .loading:
+            ProgressView()
+                .scaleEffect(1.5)
+                .tint(.white)
 
-        } else {
+        case .playing, .paused:
             HStack(spacing: 60) {
                 // Backward 15 seconds
                 Button(action: {
@@ -109,7 +110,7 @@ struct PlayerControlView: View {
                     viewModel.togglePlay()
                     onUserInteraction?()
                 }) {
-                    Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                    Image(systemName: viewModel.playerState == .playing ? "pause.circle.fill" : "play.circle.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.white)
                 }
@@ -124,6 +125,10 @@ struct PlayerControlView: View {
                         .foregroundColor(.white)
                 }
             }
+
+        case .failed:
+            // Error state handled by alert in ContentView
+            EmptyView()
         }
     }
 

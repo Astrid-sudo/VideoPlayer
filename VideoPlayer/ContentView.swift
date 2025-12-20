@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
+    @State private var showErrorAlert = false
 
     // MARK: - Fullscreen State
     // Fullscreen mode is determined by two factors:
@@ -71,22 +72,39 @@ struct ContentView: View {
                 OrientationManager.unlockOrientation()
             }
         }
-        .onChange(of: viewModel.isPlaying) { _, isPlaying in
-            if isPlaying && showControls {
-                scheduleHideControls()
-            } else {
+        .onChange(of: viewModel.playerState) { _, newState in
+            switch newState {
+            case .playing:
+                if showControls {
+                    scheduleHideControls()
+                }
+            case .failed:
+                showErrorAlert = true
+                cancelHideControls()
+            default:
                 cancelHideControls()
             }
         }
         .onAppear {
             OrientationManager.unlockOrientation()
 
-            if viewModel.isPlaying {
+            if viewModel.playerState == .playing {
                 scheduleHideControls()
             }
         }
         .onDisappear {
             cancelHideControls()
+        }
+        .alert("Playback Error", isPresented: $showErrorAlert) {
+            Button("OK") {
+                dismiss()
+            }
+        } message: {
+            if case .failed(let error) = viewModel.playerState {
+                Text(error.localizedDescription)
+            } else {
+                Text("An error occurred during playback.")
+            }
         }
     }
 
@@ -149,7 +167,7 @@ struct ContentView: View {
         hideControlsTask?.cancel()
 
         // Only auto-hide when playing
-        guard viewModel.isPlaying else { return }
+        guard viewModel.playerState == .playing else { return }
 
         // Schedule new task to hide controls after 5 seconds
         hideControlsTask = Task { @MainActor in

@@ -7,12 +7,25 @@
 
 import Foundation
 
-enum PlayerState {
-    case unknown
-    case readyToPlay
+/// Player UI state
+/// - loading: Show ProgressView (loading or buffering)
+/// - playing: Show pause button
+/// - paused: Show play button
+/// - failed: Show error alert
+enum PlayerState: Equatable {
+    case loading
     case playing
-    case buffering
-    case failed
-    case pause
-    case ended
+    case paused
+    case failed(Error)
+
+    static func == (lhs: PlayerState, rhs: PlayerState) -> Bool {
+        switch (lhs, rhs) {
+        case (.loading, .loading), (.playing, .playing), (.paused, .paused):
+            return true
+        case (.failed, .failed):
+            return true
+        default:
+            return false
+        }
+    }
 }
