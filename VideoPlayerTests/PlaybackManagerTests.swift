@@ -15,12 +15,13 @@ struct PlaybackManagerTests {
 
     // MARK: - Helper
 
-    private func makeSUT() -> (sut: PlaybackManager, mockPlayer: MockPlayerService, mockAudio: MockAudioSessionService) {
+    private func makeSUT(videos: [Video] = []) -> (sut: PlaybackManager, mockPlayer: MockPlayerService, mockAudio: MockAudioSessionService) {
         let mockPlayerService = MockPlayerService()
         let mockAudioSessionService = MockAudioSessionService()
         let sut = PlaybackManager(
             playerService: mockPlayerService,
-            audioSessionService: mockAudioSessionService
+            audioSessionService: mockAudioSessionService,
+            videos: videos
         )
         return (sut, mockPlayerService, mockAudioSessionService)
     }
@@ -40,15 +41,17 @@ struct PlaybackManagerTests {
         #expect(mockPlayer.playCallCount == 1)
     }
 
-    @Test func playSetsIsPlayingToTrue() {
+    @Test func playSetsIsPlayingToTrue() async throws {
         let (sut, _, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == true)
     }
 
-    @Test func playStartsTimeObservation() {
+    @Test func playStartsTimeObservation() async throws {
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(mockPlayer.startTimeObservationInterval == 0.5)
     }
 
@@ -67,33 +70,40 @@ struct PlaybackManagerTests {
         #expect(mockPlayer.pauseCallCount == 1)
     }
 
-    @Test func pauseSetsIsPlayingToFalse() {
+    @Test func pauseSetsIsPlayingToFalse() async throws {
         let (sut, _, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         sut.pause()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == false)
     }
 
-    @Test func pauseStopsTimeObservation() {
+    @Test func pauseStopsTimeObservation() async throws {
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         sut.pause()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(mockPlayer.stopTimeObservationCallCount == 1)
     }
 
     // MARK: - Toggle Play Tests
 
-    @Test func togglePlayFromPausedStatePlays() {
+    @Test func togglePlayFromPausedStatePlays() async throws {
         let (sut, mockPlayer, _) = makeSUT()
         sut.togglePlay()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == true)
         #expect(mockPlayer.playCallCount == 1)
     }
 
-    @Test func togglePlayFromPlayingStatePauses() {
+    @Test func togglePlayFromPlayingStatePauses() async throws {
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         sut.togglePlay()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == false)
         #expect(mockPlayer.pauseCallCount == 1)
     }
@@ -161,9 +171,10 @@ struct PlaybackManagerTests {
         #expect(sut.currentRate == 1.5)
     }
 
-    @Test func setSpeedWhilePlayingCallsSetRate() {
+    @Test func setSpeedWhilePlayingCallsSetRate() async throws {
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         mockPlayer.setRateValue = nil // reset
         sut.setSpeed(2.0)
         #expect(mockPlayer.setRateValue == 2.0)
@@ -206,12 +217,15 @@ struct PlaybackManagerTests {
         #expect(sut.bufferingState == .bufferEmpty)
     }
 
-    @Test func playbackDidEndSetsIsPlayingToFalse() async throws {
+    @Test func playbackDidEndContinuesPlayingWithLoop() async throws {
+        // 播放結束時會循環回第一首繼續播放
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
+        try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == true)
         mockPlayer.playbackDidEndSubject.send()
         try await Task.sleep(for: .milliseconds(50))
-        #expect(sut.isPlaying == false)
+        // 循環播放，isPlaying 應該仍為 true
+        #expect(sut.isPlaying == true)
     }
 }
