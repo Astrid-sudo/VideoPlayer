@@ -85,6 +85,9 @@ struct ContentView: View {
                 scheduleHideControls()
             }
         }
+        .onDisappear {
+            cancelHideControls()
+        }
     }
 
     // MARK: - Portrait View
