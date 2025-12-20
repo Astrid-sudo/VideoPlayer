@@ -8,10 +8,23 @@
 import SwiftUI
 import Combine
 
+/// Manages device orientation detection and interface orientation control.
+///
+/// This class serves two purposes:
+/// 1. **Orientation Detection**: Observes physical device orientation changes via `isLandscape`
+/// 2. **Orientation Control**: Provides static methods to lock/unlock interface orientation
+///
+/// Usage:
+/// - Use `@StateObject` to observe `isLandscape` for reactive UI updates
+/// - Use static methods `forceOrientation(_:)` and `unlockOrientation()` to control allowed orientations
+///
+/// Note: `isLandscape` reflects the physical device orientation, not the interface orientation.
+/// The interface may be locked to portrait while `isLandscape` is true.
 class OrientationManager: ObservableObject {
     @Published var orientation: UIDeviceOrientation = .portrait
     @Published var isLandscape: Bool = false
 
+    /// The currently allowed interface orientations. Used by AppDelegate to control rotation.
     static var preferredOrientation: UIInterfaceOrientationMask = .portrait
 
     private var cancellables = Set<AnyCancellable>()
@@ -48,6 +61,8 @@ class OrientationManager: ObservableObject {
         }
     }
 
+    /// Forces the interface to a specific orientation and locks it.
+    /// - Parameter orientation: The target orientation (.portrait, .landscapeLeft, .landscapeRight)
     static func forceOrientation(_ orientation: UIInterfaceOrientation) {
         // Get the active window scene
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
@@ -89,6 +104,8 @@ class OrientationManager: ObservableObject {
         }
     }
 
+    /// Unlocks orientation to allow all rotations (except upside down).
+    /// Call this when entering a view that should support rotation.
     static func unlockOrientation() {
         preferredOrientation = .allButUpsideDown
 

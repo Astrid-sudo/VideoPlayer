@@ -14,6 +14,15 @@ struct ContentView: View {
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
+
+    // MARK: - Fullscreen State
+    // Fullscreen mode is determined by two factors:
+    // 1. User manually toggled fullscreen (via button)
+    // 2. Device is in landscape orientation (auto-enter)
+    //
+    // The `userExitedFullscreen` flag prevents auto-entering fullscreen when:
+    // - User explicitly exited fullscreen while device is still in landscape
+    // - This flag resets when device returns to portrait, allowing auto-enter on next landscape rotation
     @State private var isManualFullscreen = false
     @State private var userExitedFullscreen = false
 
