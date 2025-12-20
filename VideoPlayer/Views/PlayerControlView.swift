@@ -241,7 +241,7 @@ struct PlayerControlView: View {
 
     private var nextEpisodeButton: some View {
         Button(action: {
-            viewModel.proceedNextPlayerItem()
+            viewModel.playNextVideo()
             onUserInteraction?()
         }) {
             Image(systemName: "forward.end")
