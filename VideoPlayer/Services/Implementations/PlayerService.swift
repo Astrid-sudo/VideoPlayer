@@ -147,7 +147,15 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     private func setupPictureInPicture(with layer: AVPlayerLayer) {
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
         guard layer.player != nil else { return }
-        guard pipController == nil else { return }
+
+        // 如果已經有 pipController 且綁定的是同一個 layer，則不需要重新設置
+        if let existingController = pipController,
+           existingController.playerLayer === layer {
+            return
+        }
+
+        // 清除舊的 PiP controller 和觀察者
+        clearPiPObservers()
 
         let controller = AVPictureInPictureController(playerLayer: layer)
         controller?.delegate = self
