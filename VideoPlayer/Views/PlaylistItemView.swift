@@ -16,7 +16,7 @@ struct PlaylistItemView: View {
             // Thumbnail (預設圖示)
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.appBackground)
+                    .fill(LinearGradient.appBackground)
                     .frame(width: 120, height: 68)
 
                 Image(systemName: "play.rectangle.fill")
