@@ -87,19 +87,19 @@ struct PlayerControlView: View {
 
     @ViewBuilder
     private var centerPlayButton: some View {
-        if viewModel.showIndicator {
-			ProgressView()
-				.scaleEffect(1.5)
-				.tint(.white)
+        switch viewModel.playerState {
+        case .loading:
+            // Loading state handled by ContentView
+            EmptyView()
 
-        } else {
+        case .playing, .paused:
             HStack(spacing: 60) {
-                // Backward 15 seconds
+                // Backward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.backward(15))
+                    viewModel.jumpToTime(.backward(10))
                     onUserInteraction?()
                 }) {
-                    Image(systemName: "gobackward.15")
+                    Image(systemName: "gobackward.10")
                         .font(.system(size: 40))
                         .foregroundColor(.white)
                 }
@@ -109,21 +109,26 @@ struct PlayerControlView: View {
                     viewModel.togglePlay()
                     onUserInteraction?()
                 }) {
-                    Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                    Image(systemName: viewModel.playerState == .playing ? "pause.circle.fill" : "play.circle.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.white)
                 }
 
-                // Forward 15 seconds
+                // Forward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.forward(15))
+                    viewModel.jumpToTime(.forward(10))
                     onUserInteraction?()
                 }) {
-                    Image(systemName: "goforward.15")
+                    Image(systemName: "goforward.10")
                         .font(.system(size: 40))
                         .foregroundColor(.white)
                 }
             }
+
+        case .failed:
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 50))
+                .foregroundColor(.yellow)
         }
     }
 
@@ -240,26 +245,18 @@ struct PlayerControlView: View {
     // MARK: - Next Episode Button
 
     private var nextEpisodeButton: some View {
-        Button(action: {
+        ControlIconButton(iconName: "forward.end") {
             viewModel.playNextVideo()
             onUserInteraction?()
-        }) {
-            Image(systemName: "forward.end")
-                .font(.title3)
-                .foregroundColor(.white)
         }
     }
 
     // MARK: - PiP Button
 
     private var pipButton: some View {
-        Button(action: {
+        ControlIconButton(iconName: "pip.enter") {
             viewModel.startPictureInPicture()
             onUserInteraction?()
-        }) {
-            Image(systemName: "pip.enter")
-                .font(.title3)
-                .foregroundColor(.white)
         }
         .opacity(viewModel.isPiPAvailable ? 1.0 : 0.5)
     }
@@ -267,11 +264,24 @@ struct PlayerControlView: View {
     // MARK: - Fullscreen Button
 
     private var fullscreenButton: some View {
-        Button(action: {
+        ControlIconButton(
+            iconName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+        ) {
             onFullscreenTap?()
             onUserInteraction?()
-        }) {
-            Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+        }
+    }
+}
+
+// MARK: - Control Icon Button
+
+struct ControlIconButton: View {
+    let iconName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: iconName)
                 .font(.title3)
                 .foregroundColor(.white)
         }
@@ -290,46 +300,26 @@ struct MediaOptionsSheet: View {
                 // Audio Section
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicAudible.isEmpty {
-                    Section(header: Text("音訊")) {
-                        ForEach(Array(mediaOption.avMediaCharacteristicAudible.enumerated()), id: \.offset) { index, option in
-                            Button(action: {
-                                viewModel.selectMediaOption(mediaOptionType: .audio, index: index)
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Text(option.displayName)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if viewModel.selectedAudioIndex == index {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                            }
-                        }
+                    MediaOptionSection(
+                        title: "音訊",
+                        options: mediaOption.avMediaCharacteristicAudible,
+                        selectedIndex: viewModel.selectedAudioIndex
+                    ) { index in
+                        viewModel.selectMediaOption(mediaOptionType: .audio, index: index)
+                        dismiss()
                     }
                 }
 
                 // Subtitle Section
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicLegible.isEmpty {
-                    Section(header: Text("字幕")) {
-                        ForEach(Array(mediaOption.avMediaCharacteristicLegible.enumerated()), id: \.offset) { index, option in
-                            Button(action: {
-                                viewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Text(option.displayName)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if viewModel.selectedSubtitleIndex == index {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                            }
-                        }
+                    MediaOptionSection(
+                        title: "字幕",
+                        options: mediaOption.avMediaCharacteristicLegible,
+                        selectedIndex: viewModel.selectedSubtitleIndex
+                    ) { index in
+                        viewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
+                        dismiss()
                     }
                 }
             }
@@ -339,6 +329,35 @@ struct MediaOptionsSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("完成") {
                         dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Media Option Section
+
+struct MediaOptionSection: View {
+    let title: String
+    let options: [DisplayNameLocale]
+    let selectedIndex: Int?
+    let onSelect: (Int) -> Void
+
+    var body: some View {
+        Section(header: Text(title)) {
+            ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                Button {
+                    onSelect(index)
+                } label: {
+                    HStack {
+                        Text(option.displayName)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedIndex == index {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }

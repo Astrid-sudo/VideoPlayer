@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
+    @State private var showErrorAlert = false
 
     // MARK: - Fullscreen State
     // Fullscreen mode is determined by two factors:
@@ -71,22 +72,35 @@ struct ContentView: View {
                 OrientationManager.unlockOrientation()
             }
         }
-        .onChange(of: viewModel.isPlaying) { _, isPlaying in
-            if isPlaying && showControls {
-                scheduleHideControls()
-            } else {
+        .onChange(of: viewModel.playerState) { _, newState in
+            switch newState {
+            case .playing:
+                if showControls {
+                    scheduleHideControls()
+                }
+            case .failed:
+                showErrorAlert = true
+                cancelHideControls()
+            default:
                 cancelHideControls()
             }
         }
         .onAppear {
             OrientationManager.unlockOrientation()
 
-            if viewModel.isPlaying {
+            if viewModel.playerState == .playing {
                 scheduleHideControls()
             }
         }
         .onDisappear {
             cancelHideControls()
+        }
+        .alert("播放錯誤", isPresented: $showErrorAlert) {
+            Button("繼續播放下一個影片") {
+                viewModel.playNextVideo()
+            }
+        } message: {
+            Text("此影片無法播放")
         }
     }
 
@@ -118,8 +132,15 @@ struct ContentView: View {
                 .frame(height: height)
                 .background(Color.black)
 
-            // Player Controls
-            if showControls {
+            // Loading Indicator (always visible when loading)
+            if viewModel.playerState == .loading {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+            }
+
+            // Player Controls (hidden when loading)
+            if viewModel.playerState != .loading {
                 PlayerControlView(
                     viewModel: viewModel,
                     isFullscreen: isFullscreenMode,
@@ -131,15 +152,15 @@ struct ContentView: View {
                     }
                 )
                 .frame(height: height)
-                .transition(.opacity)
+                .opacity(showControls ? 1 : 0)
+                .allowsHitTesting(showControls)
+                .animation(.easeInOut(duration: 0.3), value: showControls)
             }
         }
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                showControls.toggle()
-                if showControls {
-                    scheduleHideControls()
-                }
+            showControls.toggle()
+            if showControls {
+                scheduleHideControls()
             }
         }
     }
@@ -149,16 +170,13 @@ struct ContentView: View {
         hideControlsTask?.cancel()
 
         // Only auto-hide when playing
-        guard viewModel.isPlaying else { return }
+        guard viewModel.playerState == .playing else { return }
 
         // Schedule new task to hide controls after 5 seconds
         hideControlsTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
             guard !Task.isCancelled else { return }
-
-            withAnimation(.easeOut(duration: 0.5)) {
-                showControls = false
-            }
+            showControls = false
         }
     }
 

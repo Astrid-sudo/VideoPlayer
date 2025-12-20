@@ -28,7 +28,6 @@ struct PlaylistView: View {
                         .contentShape(Rectangle())
                         .onTapGesture {
                             viewModel.playVideo(at: index)
-							print("PlaylistView tap play video at index \(index)")
                         }
 
                         if index < viewModel.videos.count - 1 {
