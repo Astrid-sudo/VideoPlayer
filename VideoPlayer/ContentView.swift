@@ -18,7 +18,7 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            if isFullscreen {
+            if isFullscreen || orientationManager.isLandscape {
                 // Fullscreen: Fullscreen player only
                 fullscreenPlayerView(geometry: geometry)
             } else {
@@ -29,7 +29,7 @@ struct ContentView: View {
         .navigationTitle("Video Player")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .toolbar(isFullscreen ? .hidden : .visible, for: .navigationBar)
+        .toolbar((isFullscreen || orientationManager.isLandscape) ? .hidden : .visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -61,6 +61,13 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Restore rotation support when entering player
+            OrientationManager.preferredOrientation = .allButUpsideDown
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootViewController = windowScene.windows.first?.rootViewController {
+                rootViewController.setNeedsUpdateOfSupportedInterfaceOrientations()
+            }
+
             if viewModel.isPlaying {
                 scheduleHideControls()
             }

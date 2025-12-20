@@ -13,6 +13,7 @@ enum NavigationDestination: Hashable {
 
 struct LandingView: View {
     @State private var navigationPath = NavigationPath()
+    @StateObject private var orientationManager = OrientationManager()
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -51,11 +52,20 @@ struct LandingView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .onAppear {
+                orientationManager.forceOrientation(.portrait)
+            }
             .navigationDestination(for: NavigationDestination.self) { destination in
                 switch destination {
                 case .player:
                     ContentView()
                 }
+            }
+        }
+        .onChange(of: navigationPath) { _, newPath in
+            // When returning to LandingView (path is empty), lock to portrait
+            if newPath.isEmpty {
+                orientationManager.forceOrientation(.portrait)
             }
         }
     }

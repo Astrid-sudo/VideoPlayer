@@ -12,7 +12,7 @@ class OrientationManager: ObservableObject {
     @Published var orientation: UIDeviceOrientation = .portrait
     @Published var isLandscape: Bool = false
 
-    static var preferredOrientation: UIInterfaceOrientationMask = .allButUpsideDown
+    static var preferredOrientation: UIInterfaceOrientationMask = .portrait
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -33,12 +33,15 @@ class OrientationManager: ObservableObject {
         // Only handle valid orientations
         guard orientation.isValidInterfaceOrientation else { return }
 
+        // Ignore portraitUpsideDown to prevent incorrect state changes
+        guard orientation != .portraitUpsideDown else { return }
+
         self.orientation = orientation
 
         switch orientation {
         case .landscapeLeft, .landscapeRight:
             isLandscape = true
-        case .portrait, .portraitUpsideDown:
+        case .portrait:
             isLandscape = false
         default:
             break
