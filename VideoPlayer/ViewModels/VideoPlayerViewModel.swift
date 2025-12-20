@@ -82,6 +82,7 @@ final class VideoPlayerViewModel: ObservableObject {
 
         setupBindings()
         setupRemoteControlCallbacks()
+        setupNetworkMonitoring()
     }
 
     /// 便利初始化器：自動創建所有依賴
@@ -267,6 +268,21 @@ final class VideoPlayerViewModel: ObservableObject {
         remoteControlManager.setupCommands()
     }
 
+    private func setupNetworkMonitoring() {
+        NetworkMonitor.shared.$isConnected
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isConnected in
+                guard let self = self, isConnected else { return }
+                // When network recovers, reload video if current state is network error
+                if case .failed(let error) = self.playerState,
+                   let playerError = error as? PlayerError,
+                   playerError.isNetworkError {
+                    self.playbackManager.reloadCurrentVideo()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     private func updateProgress(currentTime: TimeInterval) {
         guard durationSeconds > 0 else { return }
         playProgress = Float(currentTime / durationSeconds)
@@ -282,8 +298,9 @@ final class VideoPlayerViewModel: ObservableObject {
         switch itemStatus {
         case .unknown:
             newState = .loading
-        case .failed:
-            newState = .failed(PlayerError.playbackFailed)
+        case .failed(let error):
+            let playerError = PlayerError.from(error: error)
+            newState = .failed(playerError)
         case .readyToPlay:
             if bufferingState == .bufferEmpty {
                 newState = .loading
@@ -316,11 +333,58 @@ final class VideoPlayerViewModel: ObservableObject {
 
 enum PlayerError: LocalizedError {
     case playbackFailed
+    case networkUnavailable      // -1009: No internet connection
+    case connectionTimeout       // -1001: Connection timed out
+    case cannotConnectToHost     // -1004: Cannot connect to host
+    case connectionLost          // -1005: Network connection lost
 
     var errorDescription: String? {
         switch self {
         case .playbackFailed:
             return "Failed to play video"
+        case .networkUnavailable, .connectionTimeout, .cannotConnectToHost, .connectionLost:
+            return "Network connection error"
         }
+    }
+
+    var isNetworkError: Bool {
+        switch self {
+        case .networkUnavailable, .connectionTimeout, .cannotConnectToHost, .connectionLost:
+            return true
+        case .playbackFailed:
+            return false
+        }
+    }
+
+    static func from(error: Error?) -> PlayerError {
+        guard let error = error as NSError? else {
+            return .playbackFailed
+        }
+
+        // Check if error is from NSURLErrorDomain
+        if error.domain == NSURLErrorDomain {
+            switch error.code {
+            case NSURLErrorNotConnectedToInternet: // -1009
+                return .networkUnavailable
+            case NSURLErrorTimedOut: // -1001
+                return .connectionTimeout
+            case NSURLErrorCannotConnectToHost: // -1004
+                return .cannotConnectToHost
+            case NSURLErrorNetworkConnectionLost: // -1005
+                return .connectionLost
+            default:
+                break
+            }
+        }
+
+        // Recursively check underlying error
+        if let underlyingError = error.userInfo[NSUnderlyingErrorKey] as? Error {
+            let result = PlayerError.from(error: underlyingError)
+            if result.isNetworkError {
+                return result
+            }
+        }
+
+        return .playbackFailed
     }
 }
