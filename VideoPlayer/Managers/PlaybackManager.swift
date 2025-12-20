@@ -113,9 +113,20 @@ final class PlaybackManager {
     /// 切換到指定索引的影片並播放
     func playVideo(at index: Int) {
         guard index >= 0 && index < videos.count else { return }
-        currentIndex = index
-        let urls = videos.compactMap { URL(string: $0.url) }
-        playerService.rebuildQueue(from: urls, startingAt: index)
+
+        if index == currentIndex {
+            // 同一部影片，重頭播放
+            playerService.seek(to: 0)
+        } else if index == currentIndex + 1 {
+            // 下一部影片，直接 advance 不需重建 queue
+            currentIndex = index
+            playerService.advanceToNextItem()
+        } else {
+            // 其他情況，需要重建 queue
+            currentIndex = index
+            let urls = videos.compactMap { URL(string: $0.url) }
+            playerService.rebuildQueue(from: urls, startingAt: index)
+        }
         play()
     }
 
