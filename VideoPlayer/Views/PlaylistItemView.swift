@@ -41,16 +41,6 @@ struct PlaylistItemView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
-
-                if let duration = video.duration {
-                    Text(TimeManager.floatToTimecodeString(seconds: Float(duration)))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text("--:--")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
             }
 
             Spacer()

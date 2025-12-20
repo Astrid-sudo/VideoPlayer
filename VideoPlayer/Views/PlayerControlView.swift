@@ -85,36 +85,44 @@ struct PlayerControlView: View {
 
     // MARK: - Center Play/Pause Button
 
+    @ViewBuilder
     private var centerPlayButton: some View {
-        HStack(spacing: 60) {
-            // Backward 15 seconds
-            Button(action: {
-                viewModel.jumpToTime(.backward(15))
-                onUserInteraction?()
-            }) {
-                Image(systemName: "gobackward.15")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white)
-            }
+        if viewModel.showIndicator {
+			ProgressView()
+				.scaleEffect(1.5)
+				.tint(.white)
 
-            // Play/Pause
-            Button(action: {
-                viewModel.togglePlay()
-                onUserInteraction?()
-            }) {
-                Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
-            }
+        } else {
+            HStack(spacing: 60) {
+                // Backward 15 seconds
+                Button(action: {
+                    viewModel.jumpToTime(.backward(15))
+                    onUserInteraction?()
+                }) {
+                    Image(systemName: "gobackward.15")
+                        .font(.system(size: 40))
+                        .foregroundColor(.white)
+                }
 
-            // Forward 15 seconds
-            Button(action: {
-                viewModel.jumpToTime(.forward(15))
-                onUserInteraction?()
-            }) {
-                Image(systemName: "goforward.15")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white)
+                // Play/Pause
+                Button(action: {
+                    viewModel.togglePlay()
+                    onUserInteraction?()
+                }) {
+                    Image(systemName: viewModel.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.white)
+                }
+
+                // Forward 15 seconds
+                Button(action: {
+                    viewModel.jumpToTime(.forward(15))
+                    onUserInteraction?()
+                }) {
+                    Image(systemName: "goforward.15")
+                        .font(.system(size: 40))
+                        .foregroundColor(.white)
+                }
             }
         }
     }
@@ -233,7 +241,7 @@ struct PlayerControlView: View {
 
     private var nextEpisodeButton: some View {
         Button(action: {
-            viewModel.proceedNextPlayerItem()
+            viewModel.playNextVideo()
             onUserInteraction?()
         }) {
             Image(systemName: "forward.end")
@@ -341,6 +349,6 @@ struct MediaOptionsSheet: View {
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-        PlayerControlView(viewModel: DIContainer.shared.makeVideoPlayerViewModel(videos: Video.sampleVideos))
+        PlayerControlView(viewModel: VideoPlayerViewModel(videos: Video.sampleVideos))
     }
 }

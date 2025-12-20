@@ -21,7 +21,7 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var isPlaying: Bool = false
     @Published var playerState: PlayerState = .unknown
     @Published var playSpeedRate: Float = 1.0
-    @Published var showIndicator: Bool = false
+    @Published var showIndicator: Bool = true
 
     // Playlist
     @Published var videos: [Video]
@@ -43,7 +43,6 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Managers
 
     private let playbackManager: PlaybackManager
-    private let playlistManager: PlaylistManager
     private let mediaOptionsManager: MediaOptionsManager
     private let remoteControlManager: RemoteControlManager
 
@@ -71,11 +70,7 @@ final class VideoPlayerViewModel: ObservableObject {
         // 建立 Managers
         self.playbackManager = PlaybackManager(
             playerService: playerService,
-            audioSessionService: audioSessionService
-        )
-
-        self.playlistManager = PlaylistManager(
-            playerService: playerService,
+            audioSessionService: audioSessionService,
             videos: videos
         )
 
@@ -91,6 +86,17 @@ final class VideoPlayerViewModel: ObservableObject {
         setupRemoteControlCallbacks()
     }
 
+    /// 便利初始化器：自動創建所有依賴
+    convenience init(videos: [Video]) {
+        let playerService = PlayerService()
+        self.init(
+            playerService: playerService,
+            layerConnector: playerService,
+            audioSessionService: AudioSessionService(),
+            remoteControlService: RemoteControlService(),
+            videos: videos
+        )
+    }
     // MARK: - Playback Control
 
     func togglePlay() {
@@ -140,14 +146,12 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Playlist Control
 
     func playVideo(at index: Int) {
-        playlistManager.playVideo(at: index)
-        playbackManager.play()
+        playbackManager.playVideo(at: index)
         updateNowPlayingInfo()
     }
 
-    func proceedNextPlayerItem() {
-        playlistManager.playNext()
-        playbackManager.play()
+    func playNextVideo() {
+        playbackManager.playNextVideo()
         updateNowPlayingInfo()
     }
 
@@ -200,7 +204,7 @@ final class VideoPlayerViewModel: ObservableObject {
                 guard let self = self else { return }
                 self.durationSeconds = duration
                 self.duration = TimeManager.floatToTimecodeString(seconds: Float(duration))
-                self.playlistManager.updateVideoDuration(duration, at: self.currentVideoIndex)
+                self.playbackManager.updateVideoDuration(duration, at: self.currentVideoIndex)
             }
             .store(in: &cancellables)
 
@@ -221,27 +225,27 @@ final class VideoPlayerViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        playbackManager.$bufferingState
+        // 結合 itemStatus 和 bufferingState 來決定是否顯示 loading indicator
+        // - itemStatus == .unknown → 影片載入中
+        // - bufferingState == .bufferEmpty → 播放中緩衝不足
+        Publishers.CombineLatest(playbackManager.$itemStatus, playbackManager.$bufferingState)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                switch state {
-                case .bufferEmpty:
-                    self?.showIndicator = true
-                case .bufferFull, .likelyToKeepUp:
-                    self?.showIndicator = false
-                }
+            .sink { [weak self] itemStatus, bufferingState in
+                let isLoading = itemStatus == .unknown
+                let isBuffering = bufferingState == .bufferEmpty
+                self?.showIndicator = isLoading || isBuffering
             }
             .store(in: &cancellables)
 
-        // PlaylistManager bindings
-        playlistManager.$currentIndex
+        // Playlist bindings (from PlaybackManager)
+        playbackManager.$currentIndex
             .receive(on: DispatchQueue.main)
             .sink { [weak self] index in
                 self?.currentVideoIndex = index
             }
             .store(in: &cancellables)
 
-        playlistManager.$videos
+        playbackManager.$videos
             .receive(on: DispatchQueue.main)
             .sink { [weak self] videos in
                 self?.videos = videos
@@ -279,7 +283,7 @@ final class VideoPlayerViewModel: ObservableObject {
         remoteControlManager.onPlay = { [weak self] in self?.playPlayer() }
         remoteControlManager.onPause = { [weak self] in self?.pausePlayer() }
         remoteControlManager.onTogglePlayPause = { [weak self] in self?.togglePlay() }
-        remoteControlManager.onNextTrack = { [weak self] in self?.proceedNextPlayerItem() }
+        remoteControlManager.onNextTrack = { [weak self] in self?.playNextVideo() }
         remoteControlManager.onSkipForward = { [weak self] seconds in self?.jumpToTime(.forward(seconds)) }
         remoteControlManager.onSkipBackward = { [weak self] seconds in self?.jumpToTime(.backward(seconds)) }
         remoteControlManager.onSeekToPosition = { [weak self] position in

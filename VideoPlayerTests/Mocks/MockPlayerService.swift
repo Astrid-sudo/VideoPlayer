@@ -46,6 +46,7 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     let itemStatusSubject = PassthroughSubject<PlaybackItemStatus, Never>()
     let bufferingSubject = PassthroughSubject<BufferingState, Never>()
     let playbackDidEndSubject = PassthroughSubject<Void, Never>()
+    let isPlayingSubject = PassthroughSubject<Bool, Never>()
 
     // PiP Subjects
     let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
@@ -117,14 +118,20 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
         playbackDidEndSubject.eraseToAnyPublisher()
     }
 
+    var isPlayingPublisher: AnyPublisher<Bool, Never> {
+        isPlayingSubject.eraseToAnyPublisher()
+    }
+
     // MARK: - Protocol Methods
 
     func play() {
         playCallCount += 1
+        isPlayingSubject.send(true)
     }
 
     func pause() {
         pauseCallCount += 1
+        isPlayingSubject.send(false)
     }
 
     func seek(to seconds: TimeInterval) {

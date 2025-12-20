@@ -73,6 +73,9 @@ protocol PlayerServiceProtocol: AnyObject {
     /// 播放結束通知
     var playbackDidEndPublisher: AnyPublisher<Void, Never> { get }
 
+    /// 播放狀態變化（用於同步外部控制如 PiP 的播放狀態）
+    var isPlayingPublisher: AnyPublisher<Bool, Never> { get }
+
     // MARK: - Media Options
 
     /// 取得當前播放項目的媒體選項

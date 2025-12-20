@@ -9,16 +9,30 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = DIContainer.shared.makeVideoPlayerViewModel(videos: Video.sampleVideos)
+    @StateObject private var viewModel = VideoPlayerViewModel(videos: Video.sampleVideos)
     @StateObject private var orientationManager = OrientationManager()
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
-    @State private var isFullscreen = false
+
+    // MARK: - Fullscreen State
+    // Fullscreen mode is determined by two factors:
+    // 1. User manually toggled fullscreen (via button)
+    // 2. Device is in landscape orientation (auto-enter)
+    //
+    // The `userExitedFullscreen` flag prevents auto-entering fullscreen when:
+    // - User explicitly exited fullscreen while device is still in landscape
+    // - This flag resets when device returns to portrait, allowing auto-enter on next landscape rotation
+    @State private var isManualFullscreen = false
+    @State private var userExitedFullscreen = false
+
+    private var isFullscreenMode: Bool {
+        isManualFullscreen || (orientationManager.isLandscape && !userExitedFullscreen)
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            if isFullscreen {
+            if isFullscreenMode {
                 // Fullscreen: Fullscreen player only
                 fullscreenPlayerView(geometry: geometry)
             } else {
@@ -29,7 +43,7 @@ struct ContentView: View {
         .navigationTitle("Video Player")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .toolbar(isFullscreen ? .hidden : .visible, for: .navigationBar)
+        .toolbar(isFullscreenMode ? .hidden : .visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -45,12 +59,16 @@ struct ContentView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
-            // Auto-enter fullscreen when device rotates to landscape
-            // (but only if user didn't manually exit fullscreen)
-            if isLandscape && !isFullscreen {
-                isFullscreen = true
-            } else if !isLandscape && isFullscreen {
-                isFullscreen = false
+            if isLandscape {
+                // Enter fullscreen when device rotates to landscape
+                if !userExitedFullscreen {
+                    isManualFullscreen = true
+                }
+            } else {
+                // Device returned to portrait - reset states and unlock orientation
+                isManualFullscreen = false
+                userExitedFullscreen = false
+                OrientationManager.unlockOrientation()
             }
         }
         .onChange(of: viewModel.isPlaying) { _, isPlaying in
@@ -61,9 +79,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            OrientationManager.unlockOrientation()
+
             if viewModel.isPlaying {
                 scheduleHideControls()
             }
+        }
+        .onDisappear {
+            cancelHideControls()
         }
     }
 
@@ -95,18 +118,11 @@ struct ContentView: View {
                 .frame(height: height)
                 .background(Color.black)
 
-            // Buffering Indicator
-            if viewModel.showIndicator {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
-            }
-
             // Player Controls
             if showControls {
                 PlayerControlView(
                     viewModel: viewModel,
-                    isFullscreen: isFullscreen,
+                    isFullscreen: isFullscreenMode,
                     onUserInteraction: {
                         scheduleHideControls()
                     },
@@ -154,14 +170,16 @@ struct ContentView: View {
     // MARK: - Fullscreen Toggle
 
     private func toggleFullscreen() {
-        isFullscreen.toggle()
+        isManualFullscreen.toggle()
 
-        if isFullscreen {
+        if isManualFullscreen {
             // Enter fullscreen - force landscape
-            orientationManager.forceOrientation(.landscapeRight)
+            userExitedFullscreen = false
+            OrientationManager.forceOrientation(.landscapeRight)
         } else {
-            // Exit fullscreen - force portrait
-            orientationManager.forceOrientation(.portrait)
+            // Exit fullscreen - user explicitly exited
+            userExitedFullscreen = true
+            OrientationManager.forceOrientation(.portrait)
         }
     }
 }
