@@ -140,7 +140,7 @@ struct ContentView: View {
             }
 
             // Player Controls (hidden when loading)
-            if showControls && viewModel.playerState != .loading {
+            if viewModel.playerState != .loading {
                 PlayerControlView(
                     viewModel: viewModel,
                     isFullscreen: isFullscreenMode,
@@ -152,15 +152,15 @@ struct ContentView: View {
                     }
                 )
                 .frame(height: height)
-                .transition(.opacity)
+                .opacity(showControls ? 1 : 0)
+                .allowsHitTesting(showControls)
+                .animation(.easeInOut(duration: 0.3), value: showControls)
             }
         }
         .onTapGesture {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                showControls.toggle()
-                if showControls {
-                    scheduleHideControls()
-                }
+            showControls.toggle()
+            if showControls {
+                scheduleHideControls()
             }
         }
     }
@@ -176,10 +176,7 @@ struct ContentView: View {
         hideControlsTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
             guard !Task.isCancelled else { return }
-
-            withAnimation(.easeOut(duration: 0.5)) {
-                showControls = false
-            }
+            showControls = false
         }
     }
 
