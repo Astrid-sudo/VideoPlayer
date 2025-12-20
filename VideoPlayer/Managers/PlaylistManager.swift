@@ -45,9 +45,7 @@ final class PlaylistManager {
     /// 播放指定索引的影片
     func playVideo(at index: Int) {
         guard index >= 0 && index < videos.count else { return }
-
         currentIndex = index
-
         let urls = videos.compactMap { URL(string: $0.url) }
         playerService.rebuildQueue(from: urls, startingAt: index)
     }
@@ -55,11 +53,10 @@ final class PlaylistManager {
     /// 播放下一個影片
     func playNext() {
         let nextIndex = currentIndex + 1
-
         if nextIndex >= videos.count {
-            // 已是最後一個，循環到第一個
             currentIndex = 0
-            playerService.seek(to: 0)
+            let urls = videos.compactMap { URL(string: $0.url) }
+            playerService.rebuildQueue(from: urls, startingAt: 0)
         } else {
             currentIndex = nextIndex
             playerService.advanceToNextItem()
@@ -69,9 +66,7 @@ final class PlaylistManager {
     /// 播放上一個影片
     func playPrevious() {
         let previousIndex = currentIndex - 1
-
         if previousIndex < 0 {
-            // 已是第一個，循環到最後一個
             playVideo(at: videos.count - 1)
         } else {
             playVideo(at: previousIndex)
@@ -111,17 +106,16 @@ final class PlaylistManager {
     }
 
     private func handlePlaybackEnd() {
-        // 延遲一點再處理，讓 AVQueuePlayer 有時間切換
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self = self else { return }
-
-            let nextIndex = self.currentIndex + 1
-            if nextIndex < self.videos.count {
-                self.currentIndex = nextIndex
-            } else {
-                // 播放完畢，循環到第一個
-                self.currentIndex = 0
-            }
+        // AVQueuePlayer 會自動 advance，我們只需更新 index
+        let nextIndex = currentIndex + 1
+        if nextIndex < videos.count {
+            currentIndex = nextIndex
+        } else {
+            // 播放完畢，循環到第一個
+            currentIndex = 0
+            let urls = videos.compactMap { URL(string: $0.url) }
+            playerService.rebuildQueue(from: urls, startingAt: 0)
+            playerService.play()
         }
     }
 }
