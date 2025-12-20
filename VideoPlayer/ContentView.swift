@@ -95,16 +95,12 @@ struct ContentView: View {
         .onDisappear {
             cancelHideControls()
         }
-        .alert("Playback Error", isPresented: $showErrorAlert) {
-            Button("OK") {
-                dismiss()
+        .alert("播放錯誤", isPresented: $showErrorAlert) {
+            Button("繼續播放下一個影片") {
+                viewModel.playNextVideo()
             }
         } message: {
-            if case .failed(let error) = viewModel.playerState {
-                Text(error.localizedDescription)
-            } else {
-                Text("An error occurred during playback.")
-            }
+            Text("此影片無法播放")
         }
     }
 

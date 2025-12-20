@@ -127,8 +127,9 @@ struct PlayerControlView: View {
             }
 
         case .failed:
-            // Error state handled by alert in ContentView
-            EmptyView()
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 50))
+                .foregroundColor(.yellow)
         }
     }
 
