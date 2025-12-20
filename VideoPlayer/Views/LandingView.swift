@@ -18,12 +18,8 @@ struct LandingView: View {
         NavigationStack(path: $navigationPath) {
             ZStack {
                 // Background gradient (same as video cell thumbnail)
-                LinearGradient(
-                    colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                LinearGradient.appBackground
+                    .ignoresSafeArea()
 
                 VStack {
                     Spacer()

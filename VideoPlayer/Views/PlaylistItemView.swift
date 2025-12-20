@@ -16,13 +16,7 @@ struct PlaylistItemView: View {
             // Thumbnail (預設圖示)
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(.appBackground)
                     .frame(width: 120, height: 68)
 
                 Image(systemName: "play.rectangle.fill")
@@ -57,6 +51,16 @@ struct PlaylistItemView: View {
         .background(isPlaying ? Color.blue.opacity(0.1) : Color.clear)
         .cornerRadius(8)
     }
+}
+
+// MARK: - App Gradient
+
+extension LinearGradient {
+    static let appBackground = LinearGradient(
+        colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 }
 
 #Preview {
