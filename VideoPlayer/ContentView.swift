@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct ContentView: View {
     @Environment(\.dismiss) private var dismiss
@@ -110,9 +109,7 @@ struct ContentView: View {
         }
         .alert("網路連線異常", isPresented: $showNetworkErrorAlert) {
             Button("前往設定") {
-                if let url = URL(string: "App-Prefs:") {
-                    UIApplication.shared.open(url)
-                }
+                URLOpener.openSettings()
             }
             Button("取消", role: .cancel) { }
         } message: {
