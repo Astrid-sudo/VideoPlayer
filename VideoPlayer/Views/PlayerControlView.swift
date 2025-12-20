@@ -300,46 +300,26 @@ struct MediaOptionsSheet: View {
                 // Audio Section
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicAudible.isEmpty {
-                    Section(header: Text("音訊")) {
-                        ForEach(Array(mediaOption.avMediaCharacteristicAudible.enumerated()), id: \.offset) { index, option in
-                            Button(action: {
-                                viewModel.selectMediaOption(mediaOptionType: .audio, index: index)
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Text(option.displayName)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if viewModel.selectedAudioIndex == index {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                            }
-                        }
+                    MediaOptionSection(
+                        title: "音訊",
+                        options: mediaOption.avMediaCharacteristicAudible,
+                        selectedIndex: viewModel.selectedAudioIndex
+                    ) { index in
+                        viewModel.selectMediaOption(mediaOptionType: .audio, index: index)
+                        dismiss()
                     }
                 }
 
                 // Subtitle Section
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicLegible.isEmpty {
-                    Section(header: Text("字幕")) {
-                        ForEach(Array(mediaOption.avMediaCharacteristicLegible.enumerated()), id: \.offset) { index, option in
-                            Button(action: {
-                                viewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Text(option.displayName)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if viewModel.selectedSubtitleIndex == index {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                            }
-                        }
+                    MediaOptionSection(
+                        title: "字幕",
+                        options: mediaOption.avMediaCharacteristicLegible,
+                        selectedIndex: viewModel.selectedSubtitleIndex
+                    ) { index in
+                        viewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
+                        dismiss()
                     }
                 }
             }
@@ -349,6 +329,35 @@ struct MediaOptionsSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("完成") {
                         dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Media Option Section
+
+struct MediaOptionSection: View {
+    let title: String
+    let options: [DisplayNameLocale]
+    let selectedIndex: Int?
+    let onSelect: (Int) -> Void
+
+    var body: some View {
+        Section(header: Text(title)) {
+            ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                Button {
+                    onSelect(index)
+                } label: {
+                    HStack {
+                        Text(option.displayName)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        if selectedIndex == index {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }
