@@ -86,6 +86,17 @@ final class VideoPlayerViewModel: ObservableObject {
         setupRemoteControlCallbacks()
     }
 
+    /// 便利初始化器：自動創建所有依賴
+    convenience init(videos: [Video]) {
+        let playerService = PlayerService()
+        self.init(
+            playerService: playerService,
+            layerConnector: playerService,
+            audioSessionService: AudioSessionService(),
+            remoteControlService: RemoteControlService(),
+            videos: videos
+        )
+    }
     // MARK: - Playback Control
 
     func togglePlay() {

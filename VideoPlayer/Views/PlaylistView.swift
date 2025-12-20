@@ -45,6 +45,6 @@ struct PlaylistView: View {
 
 #Preview {
     PlaylistView(
-        viewModel: DIContainer.shared.makeVideoPlayerViewModel(videos: Video.sampleVideos)
+        viewModel: VideoPlayerViewModel(videos: Video.sampleVideos)
     )
 }

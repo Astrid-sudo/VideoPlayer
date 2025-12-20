@@ -7,11 +7,15 @@
 
 import SwiftUI
 
+enum NavigationDestination: Hashable {
+    case player
+}
+
 struct LandingView: View {
-    @State private var showPlayer = false
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 // Background gradient (same as video cell thumbnail)
                 LinearGradient(
@@ -26,7 +30,7 @@ struct LandingView: View {
 
                     // Play Playlist Button
                     Button {
-                        showPlayer = true
+                        navigationPath.append(NavigationDestination.player)
                     } label: {
                         HStack {
                             Image(systemName: "play.fill")
@@ -47,8 +51,11 @@ struct LandingView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .navigationDestination(isPresented: $showPlayer) {
-                ContentView()
+            .navigationDestination(for: NavigationDestination.self) { destination in
+                switch destination {
+                case .player:
+                    ContentView()
+                }
             }
         }
     }
