@@ -245,26 +245,18 @@ struct PlayerControlView: View {
     // MARK: - Next Episode Button
 
     private var nextEpisodeButton: some View {
-        Button(action: {
+        ControlIconButton(iconName: "forward.end") {
             viewModel.playNextVideo()
             onUserInteraction?()
-        }) {
-            Image(systemName: "forward.end")
-                .font(.title3)
-                .foregroundColor(.white)
         }
     }
 
     // MARK: - PiP Button
 
     private var pipButton: some View {
-        Button(action: {
+        ControlIconButton(iconName: "pip.enter") {
             viewModel.startPictureInPicture()
             onUserInteraction?()
-        }) {
-            Image(systemName: "pip.enter")
-                .font(.title3)
-                .foregroundColor(.white)
         }
         .opacity(viewModel.isPiPAvailable ? 1.0 : 0.5)
     }
@@ -272,11 +264,24 @@ struct PlayerControlView: View {
     // MARK: - Fullscreen Button
 
     private var fullscreenButton: some View {
-        Button(action: {
+        ControlIconButton(
+            iconName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right"
+        ) {
             onFullscreenTap?()
             onUserInteraction?()
-        }) {
-            Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+        }
+    }
+}
+
+// MARK: - Control Icon Button
+
+struct ControlIconButton: View {
+    let iconName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: iconName)
                 .font(.title3)
                 .foregroundColor(.white)
         }
