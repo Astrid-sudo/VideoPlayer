@@ -14,11 +14,15 @@ struct ContentView: View {
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
-    @State private var isFullscreen = false
+    @State private var isManualFullscreen = false
+
+    private var isFullscreenMode: Bool {
+        isManualFullscreen || orientationManager.isLandscape
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            if isFullscreen || orientationManager.isLandscape {
+            if isFullscreenMode {
                 // Fullscreen: Fullscreen player only
                 fullscreenPlayerView(geometry: geometry)
             } else {
@@ -29,7 +33,7 @@ struct ContentView: View {
         .navigationTitle("Video Player")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
-        .toolbar((isFullscreen || orientationManager.isLandscape) ? .hidden : .visible, for: .navigationBar)
+        .toolbar(isFullscreenMode ? .hidden : .visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -45,12 +49,11 @@ struct ContentView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
-            // Auto-enter fullscreen when device rotates to landscape
-            // (but only if user didn't manually exit fullscreen)
-            if isLandscape && !isFullscreen {
-                isFullscreen = true
-            } else if !isLandscape && isFullscreen {
-                isFullscreen = false
+            // Sync manual fullscreen state with device orientation
+            if isLandscape && !isManualFullscreen {
+                isManualFullscreen = true
+            } else if !isLandscape && isManualFullscreen {
+                isManualFullscreen = false
             }
         }
         .onChange(of: viewModel.isPlaying) { _, isPlaying in
@@ -61,12 +64,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            // Restore rotation support when entering player
-            OrientationManager.preferredOrientation = .allButUpsideDown
-            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-               let rootViewController = windowScene.windows.first?.rootViewController {
-                rootViewController.setNeedsUpdateOfSupportedInterfaceOrientations()
-            }
+            OrientationManager.unlockOrientation()
 
             if viewModel.isPlaying {
                 scheduleHideControls()
@@ -106,7 +104,7 @@ struct ContentView: View {
             if showControls {
                 PlayerControlView(
                     viewModel: viewModel,
-                    isFullscreen: isFullscreen,
+                    isFullscreen: isFullscreenMode,
                     onUserInteraction: {
                         scheduleHideControls()
                     },
@@ -154,14 +152,14 @@ struct ContentView: View {
     // MARK: - Fullscreen Toggle
 
     private func toggleFullscreen() {
-        isFullscreen.toggle()
+        isManualFullscreen.toggle()
 
-        if isFullscreen {
+        if isManualFullscreen {
             // Enter fullscreen - force landscape
-            orientationManager.forceOrientation(.landscapeRight)
+            OrientationManager.forceOrientation(.landscapeRight)
         } else {
             // Exit fullscreen - force portrait
-            orientationManager.forceOrientation(.portrait)
+            OrientationManager.forceOrientation(.portrait)
         }
     }
 }

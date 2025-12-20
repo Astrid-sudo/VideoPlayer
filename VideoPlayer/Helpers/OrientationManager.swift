@@ -48,7 +48,7 @@ class OrientationManager: ObservableObject {
         }
     }
 
-    func forceOrientation(_ orientation: UIInterfaceOrientation) {
+    static func forceOrientation(_ orientation: UIInterfaceOrientation) {
         // Get the active window scene
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
             return
@@ -57,11 +57,11 @@ class OrientationManager: ObservableObject {
         // Update preferred orientation
         switch orientation {
         case .landscapeLeft, .landscapeRight:
-            OrientationManager.preferredOrientation = .landscape
+            preferredOrientation = .landscape
         case .portrait:
-            OrientationManager.preferredOrientation = .portrait
+            preferredOrientation = .portrait
         default:
-            OrientationManager.preferredOrientation = .allButUpsideDown
+            preferredOrientation = .allButUpsideDown
         }
 
         // Get the root view controller and request update
@@ -87,5 +87,16 @@ class OrientationManager: ObservableObject {
                 print("Orientation update error: \(error.localizedDescription)")
             }
         }
+    }
+
+    static func unlockOrientation() {
+        preferredOrientation = .allButUpsideDown
+
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            return
+        }
+
+        rootViewController.setNeedsUpdateOfSupportedInterfaceOrientations()
     }
 }
