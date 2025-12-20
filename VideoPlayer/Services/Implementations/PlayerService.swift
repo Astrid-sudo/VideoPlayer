@@ -84,8 +84,11 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     // MARK: - Player Connection
 
     func connect(layer: AVPlayerLayer) {
-        layer.player = player
-        setupPictureInPicture(with: layer)
+        // Defer player connection to avoid blocking navigation animation
+        DispatchQueue.main.async { [weak self] in
+            layer.player = self?.player
+            self?.setupPictureInPicture(with: layer)
+        }
     }
 
     // MARK: - Protocol Properties

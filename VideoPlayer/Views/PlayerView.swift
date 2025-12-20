@@ -13,10 +13,7 @@ struct PlayerView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PlayerUIView {
         let view = PlayerUIView()
-
-        // 連接 player layer 到 service（同時建立 PiP controller）
         onLayerReady(view.playerLayer)
-
         return view
     }
 
