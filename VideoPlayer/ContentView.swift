@@ -132,8 +132,15 @@ struct ContentView: View {
                 .frame(height: height)
                 .background(Color.black)
 
-            // Player Controls
-            if showControls {
+            // Loading Indicator (always visible when loading)
+            if viewModel.playerState == .loading {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+            }
+
+            // Player Controls (hidden when loading)
+            if showControls && viewModel.playerState != .loading {
                 PlayerControlView(
                     viewModel: viewModel,
                     isFullscreen: isFullscreenMode,

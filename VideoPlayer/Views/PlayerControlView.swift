@@ -89,9 +89,8 @@ struct PlayerControlView: View {
     private var centerPlayButton: some View {
         switch viewModel.playerState {
         case .loading:
-            ProgressView()
-                .scaleEffect(1.5)
-                .tint(.white)
+            // Loading state handled by ContentView
+            EmptyView()
 
         case .playing, .paused:
             HStack(spacing: 60) {
