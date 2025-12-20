@@ -126,6 +126,13 @@ final class PlaybackManager {
         play()
     }
 
+    /// Reload current video (force rebuild queue)
+    func reloadCurrentVideo() {
+        let urls = videos.compactMap { URL(string: $0.url) }
+        playerService.rebuildQueue(from: urls, startingAt: currentIndex)
+        play()
+    }
+
     /// 切換到下一個影片並播放
     func playNextVideo() {
         let nextIndex = currentIndex + 1

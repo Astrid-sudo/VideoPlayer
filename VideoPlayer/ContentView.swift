@@ -14,7 +14,8 @@ struct ContentView: View {
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
-    @State private var showErrorAlert = false
+    @State private var showPlaybackErrorAlert = false
+    @State private var showNetworkErrorAlert = false
 
     // MARK: - Fullscreen State
     // Fullscreen mode is determined by two factors:
@@ -78,8 +79,12 @@ struct ContentView: View {
                 if showControls {
                     scheduleHideControls()
                 }
-            case .failed:
-                showErrorAlert = true
+            case .failed(let error):
+                if let playerError = error as? PlayerError, playerError.isNetworkError {
+                    showNetworkErrorAlert = true
+                } else {
+                    showPlaybackErrorAlert = true
+                }
                 cancelHideControls()
             default:
                 cancelHideControls()
@@ -95,12 +100,20 @@ struct ContentView: View {
         .onDisappear {
             cancelHideControls()
         }
-        .alert("播放錯誤", isPresented: $showErrorAlert) {
+        .alert("播放錯誤", isPresented: $showPlaybackErrorAlert) {
             Button("繼續播放下一個影片") {
                 viewModel.playNextVideo()
             }
         } message: {
             Text("此影片無法播放")
+        }
+        .alert("網路連線異常", isPresented: $showNetworkErrorAlert) {
+            Button("前往設定") {
+                URLOpener.openSettings()
+            }
+            Button("取消", role: .cancel) { }
+        } message: {
+            Text("請檢查網路設定後重試")
         }
     }
 

@@ -327,7 +327,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
                     self?.durationSubject.send(CMTimeGetSeconds(item.duration))
                 }
             case .failed:
-                status = .failed
+                status = .failed(item.error)
             @unknown default:
                 status = .unknown
             }

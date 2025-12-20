@@ -106,10 +106,21 @@ struct MediaSelectionOptions {
 }
 
 /// 播放項目狀態
-enum PlaybackItemStatus {
+enum PlaybackItemStatus: Equatable {
     case unknown
     case readyToPlay
-    case failed
+    case failed(Error?)
+
+    static func == (lhs: PlaybackItemStatus, rhs: PlaybackItemStatus) -> Bool {
+        switch (lhs, rhs) {
+        case (.unknown, .unknown), (.readyToPlay, .readyToPlay):
+            return true
+        case (.failed, .failed):
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 /// 緩衝狀態
