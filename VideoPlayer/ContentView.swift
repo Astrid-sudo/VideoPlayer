@@ -15,9 +15,10 @@ struct ContentView: View {
     @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
     @State private var isManualFullscreen = false
+    @State private var userExitedFullscreen = false
 
     private var isFullscreenMode: Bool {
-        isManualFullscreen || orientationManager.isLandscape
+        isManualFullscreen || (orientationManager.isLandscape && !userExitedFullscreen)
     }
 
     var body: some View {
@@ -49,11 +50,16 @@ struct ContentView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
-            // Sync manual fullscreen state with device orientation
-            if isLandscape && !isManualFullscreen {
-                isManualFullscreen = true
-            } else if !isLandscape && isManualFullscreen {
+            if isLandscape {
+                // Enter fullscreen when device rotates to landscape
+                if !userExitedFullscreen {
+                    isManualFullscreen = true
+                }
+            } else {
+                // Device returned to portrait - reset states and unlock orientation
                 isManualFullscreen = false
+                userExitedFullscreen = false
+                OrientationManager.unlockOrientation()
             }
         }
         .onChange(of: viewModel.isPlaying) { _, isPlaying in
@@ -156,9 +162,11 @@ struct ContentView: View {
 
         if isManualFullscreen {
             // Enter fullscreen - force landscape
+            userExitedFullscreen = false
             OrientationManager.forceOrientation(.landscapeRight)
         } else {
-            // Exit fullscreen - force portrait
+            // Exit fullscreen - user explicitly exited
+            userExitedFullscreen = true
             OrientationManager.forceOrientation(.portrait)
         }
     }
