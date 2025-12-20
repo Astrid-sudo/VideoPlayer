@@ -95,13 +95,6 @@ struct ContentView: View {
                 .frame(height: height)
                 .background(Color.black)
 
-            // Buffering Indicator
-            if viewModel.showIndicator {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
-            }
-
             // Player Controls
             if showControls {
                 PlayerControlView(

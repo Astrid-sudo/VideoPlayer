@@ -21,7 +21,7 @@ final class VideoPlayerViewModel: ObservableObject {
     @Published var isPlaying: Bool = false
     @Published var playerState: PlayerState = .unknown
     @Published var playSpeedRate: Float = 1.0
-    @Published var showIndicator: Bool = false
+    @Published var showIndicator: Bool = true
 
     // Playlist
     @Published var videos: [Video]
@@ -221,15 +221,15 @@ final class VideoPlayerViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        playbackManager.$bufferingState
+        // 結合 itemStatus 和 bufferingState 來決定是否顯示 loading indicator
+        // - itemStatus == .unknown → 影片載入中
+        // - bufferingState == .bufferEmpty → 播放中緩衝不足
+        Publishers.CombineLatest(playbackManager.$itemStatus, playbackManager.$bufferingState)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                switch state {
-                case .bufferEmpty:
-                    self?.showIndicator = true
-                case .bufferFull, .likelyToKeepUp:
-                    self?.showIndicator = false
-                }
+            .sink { [weak self] itemStatus, bufferingState in
+                let isLoading = itemStatus == .unknown
+                let isBuffering = bufferingState == .bufferEmpty
+                self?.showIndicator = isLoading || isBuffering
             }
             .store(in: &cancellables)
 

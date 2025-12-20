@@ -127,13 +127,8 @@ final class PlaybackManager {
             }
             .store(in: &cancellables)
 
-        // 訂閱播放結束
-        playerService.playbackDidEndPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] in
-                self?.isPlaying = false
-            }
-            .store(in: &cancellables)
+        // 播放結束由 PlaylistManager 處理
+        // AVQueuePlayer 會自動 advance，isPlaying 狀態不需要在此更新
     }
 
     private func activateAudioSession() {
