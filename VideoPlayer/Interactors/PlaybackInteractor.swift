@@ -152,16 +152,6 @@ final class PlaybackInteractor {
         play()
     }
 
-    /// 切換到上一個影片並播放
-    func playPreviousVideo() {
-        let previousIndex = currentIndex - 1
-        if previousIndex < 0 {
-            playVideo(at: videos.count - 1)
-        } else {
-            playVideo(at: previousIndex)
-        }
-    }
-
     /// 更新影片時長（當取得實際時長時）
     func updateVideoDuration(_ duration: TimeInterval, at index: Int) {
         guard index >= 0 && index < videos.count else { return }

@@ -10,7 +10,6 @@ import AVKit
 
 struct PlayerControlView: View {
     @ObservedObject var viewModel: NowPlayingViewModel
-    @State private var isSeekingProgress = false
     @State private var showSpeedMenu = false
     @State private var showMediaOptionsSheet = false
     var isFullscreen: Bool = false
@@ -180,7 +179,6 @@ struct PlayerControlView: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
-                        isSeekingProgress = true
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         viewModel.slideToTime(Double(progress))
                         onUserInteraction?()
@@ -188,7 +186,6 @@ struct PlayerControlView: View {
                     .onEnded { value in
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         viewModel.sliderTouchEnded(Double(progress))
-                        isSeekingProgress = false
                         onUserInteraction?()
                     }
             )

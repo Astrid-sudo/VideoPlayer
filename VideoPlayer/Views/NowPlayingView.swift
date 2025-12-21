@@ -12,7 +12,6 @@ struct NowPlayingView: View {
     @StateObject private var viewModel = NowPlayingViewModel(videos: Video.sampleVideos)
     @StateObject private var orientationManager = OrientationManager()
     @State private var showControls = true
-    @State private var showMediaOptionsSheet = false
     @State private var hideControlsTask: Task<Void, Never>?
     @State private var showPlaybackErrorAlert = false
     @State private var showNetworkErrorAlert = false
