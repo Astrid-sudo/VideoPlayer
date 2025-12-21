@@ -100,20 +100,20 @@ struct NowPlayingView: View {
         .onDisappear {
             cancelHideControls()
         }
-        .alert(Text("alert.playbackError.title", tableName: "Localizable"), isPresented: $showPlaybackErrorAlert) {
-            Button(String(localized: "alert.playbackError.continueNext", table: "Localizable")) {
+        .alert("alert.playbackError.title".localized, isPresented: $showPlaybackErrorAlert) {
+            Button("alert.playbackError.continueNext".localized) {
                 viewModel.playNextVideo()
             }
         } message: {
-            Text("alert.playbackError.message", tableName: "Localizable")
+            Text("alert.playbackError.message".localized)
         }
-        .alert(Text("alert.networkError.title", tableName: "Localizable"), isPresented: $showNetworkErrorAlert) {
-            Button(String(localized: "alert.networkError.goToSettings", table: "Localizable")) {
+        .alert("alert.networkError.title".localized, isPresented: $showNetworkErrorAlert) {
+            Button("alert.networkError.goToSettings".localized) {
                 URLOpener.openSettings()
             }
-            Button(String(localized: "common.cancel", table: "Localizable"), role: .cancel) { }
+            Button("common.cancel".localized, role: .cancel) { }
         } message: {
-            Text("alert.networkError.message", tableName: "Localizable")
+            Text("alert.networkError.message".localized)
         }
     }
 

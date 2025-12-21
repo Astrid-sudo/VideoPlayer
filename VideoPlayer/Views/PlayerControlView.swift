@@ -225,18 +225,18 @@ struct PlayerControlView: View {
         }
         .actionSheet(isPresented: $showSpeedMenu) {
             ActionSheet(
-                title: Text("speed.title", tableName: "Localizable"),
+                title: Text("speed.title".localized),
                 buttons: [
                     .default(Text("0.5x")) {
                         viewModel.adjustSpeed(.slow)
                     },
-                    .default(Text("speed.normal", tableName: "Localizable")) {
+                    .default(Text("speed.normal".localized)) {
                         viewModel.adjustSpeed(.normal)
                     },
                     .default(Text("1.5x")) {
                         viewModel.adjustSpeed(.fast)
                     },
-                    .cancel(Text("common.cancel", tableName: "Localizable"))
+                    .cancel(Text("common.cancel".localized))
                 ]
             )
         }
@@ -301,7 +301,7 @@ struct MediaOptionsSheet: View {
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicAudible.isEmpty {
                     MediaOptionSection(
-                        title: String(localized: "mediaOptions.audio", table: "Localizable"),
+                        title: "mediaOptions.audio".localized,
                         options: mediaOption.avMediaCharacteristicAudible,
                         selectedIndex: viewModel.selectedAudioIndex
                     ) { index in
@@ -314,7 +314,7 @@ struct MediaOptionsSheet: View {
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicLegible.isEmpty {
                     MediaOptionSection(
-                        title: String(localized: "mediaOptions.subtitles", table: "Localizable"),
+                        title: "mediaOptions.subtitles".localized,
                         options: mediaOption.avMediaCharacteristicLegible,
                         selectedIndex: viewModel.selectedSubtitleIndex
                     ) { index in
@@ -323,11 +323,11 @@ struct MediaOptionsSheet: View {
                     }
                 }
             }
-            .navigationTitle(Text("mediaOptions.title", tableName: "Localizable"))
+            .navigationTitle("mediaOptions.title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(String(localized: "common.done", table: "Localizable")) {
+                    Button("common.done".localized) {
                         dismiss()
                     }
                 }
