@@ -35,12 +35,17 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Combine Subjects
 
+    // Event stream (continuous updates)
     private let timeSubject = PassthroughSubject<TimeInterval, Never>()
-    private let durationSubject = PassthroughSubject<TimeInterval, Never>()
-    private let itemStatusSubject = PassthroughSubject<PlaybackItemStatus, Never>()
-    private let bufferingSubject = PassthroughSubject<BufferingState, Never>()
+
+    // State subjects (need to retain current value for late subscribers)
+    private let durationSubject = CurrentValueSubject<TimeInterval, Never>(0)
+    private let itemStatusSubject = CurrentValueSubject<PlaybackItemStatus, Never>(.unknown)
+    private let bufferingSubject = CurrentValueSubject<BufferingState, Never>(.likelyToKeepUp)
+    private let isPlayingSubject = CurrentValueSubject<Bool, Never>(false)
+
+    // One-time events
     private let playbackDidEndSubject = PassthroughSubject<Void, Never>()
-    private let isPlayingSubject = PassthroughSubject<Bool, Never>()
 
     // PiP Subjects
     private let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
