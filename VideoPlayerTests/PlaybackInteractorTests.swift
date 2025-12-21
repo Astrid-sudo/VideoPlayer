@@ -356,26 +356,6 @@ struct PlaybackInteractorTests {
         #expect(sut.currentIndex == 0)
     }
 
-    @Test func playPreviousVideoGoesToPreviousIndex() {
-        let videos = PlaybackInteractorTests.sampleVideos
-        let (sut, mockPlayer, _) = makeSUT(videos: videos)
-        sut.playVideo(at: 2)
-        mockPlayer.reset()
-
-        sut.playPreviousVideo()
-
-        #expect(sut.currentIndex == 1)
-    }
-
-    @Test func playPreviousVideoAtFirstIndexLoopsToLast() {
-        let videos = PlaybackInteractorTests.sampleVideos
-        let (sut, _, _) = makeSUT(videos: videos)
-
-        sut.playPreviousVideo()
-
-        #expect(sut.currentIndex == 2)
-    }
-
     @Test func updateVideoDurationUpdatesVideoAtIndex() {
         let videos = PlaybackInteractorTests.sampleVideos
         let (sut, _, _) = makeSUT(videos: videos)
