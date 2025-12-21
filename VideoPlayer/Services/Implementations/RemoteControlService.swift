@@ -28,6 +28,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
 
     // MARK: - RemoteControlServiceProtocol
 
+    /// Configures remote control command handlers.
     func setupCommands(handlers: RemoteCommandHandlers) {
         self.handlers = handlers
 
@@ -96,6 +97,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
         }
     }
 
+    /// Updates Now Playing info on lock screen and Control Center.
     func updateNowPlayingInfo(_ info: NowPlayingInfo) {
         var nowPlayingInfo = [String: Any]()
 
@@ -175,6 +177,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
         }
     }
 
+    /// Clears Now Playing info from lock screen.
     func clearNowPlayingInfo() {
         nowPlayingInfoCenter.nowPlayingInfo = nil
     }
