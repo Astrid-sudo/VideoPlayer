@@ -307,6 +307,7 @@ final class VideoPlayerViewModel: ObservableObject {
             newState = .loading
         case .failed(let error):
             let playerError = PlayerError.from(error: error)
+            AppLogger.player.error("Playback failed: \(playerError)")
             newState = .failed(playerError)
         case .readyToPlay:
             if bufferingState == .bufferEmpty {

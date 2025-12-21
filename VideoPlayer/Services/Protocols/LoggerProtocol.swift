@@ -5,10 +5,10 @@
 
 /// Protocol for logging services, enabling dependency injection and testability
 protocol LoggerProtocol {
-    func debug(_ message: String)
-    func info(_ message: String)
-    func notice(_ message: String)
-    func warning(_ message: String)
-    func error(_ message: String)
-    func fault(_ message: String)
+    func debug(_ message: String, file: String, function: String, line: Int)
+    func info(_ message: String, file: String, function: String, line: Int)
+    func notice(_ message: String, file: String, function: String, line: Int)
+    func warning(_ message: String, file: String, function: String, line: Int)
+    func error(_ message: String, file: String, function: String, line: Int)
+    func fault(_ message: String, file: String, function: String, line: Int)
 }

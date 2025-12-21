@@ -327,6 +327,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
                     self?.durationSubject.send(CMTimeGetSeconds(item.duration))
                 }
             case .failed:
+                AppLogger.player.error("Player item failed: \(item.error?.localizedDescription ?? "Unknown error")")
                 status = .failed(item.error)
             @unknown default:
                 status = .unknown
