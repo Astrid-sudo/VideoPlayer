@@ -159,20 +159,20 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
         guard layer.player != nil else { return }
 
-        // 如果已經有 pipController 且綁定的是同一個 layer，則不需要重新設置
+        // Skip if pipController already exists and is bound to the same layer
         if let existingController = pipController,
            existingController.playerLayer === layer {
             return
         }
 
-        // 清除舊的 PiP controller 和觀察者
+        // Clear old PiP controller and observers
         clearPiPObservers()
 
         let controller = AVPictureInPictureController(playerLayer: layer)
         controller?.delegate = self
         pipController = controller
 
-        // 觀察 PiP 可用狀態
+        // Observe PiP availability
         pipPossibleObservation = controller?.observe(\.isPictureInPicturePossible, options: [.initial, .new]) { [weak self] controller, _ in
             AppLogger.player.debug("PiP possible: \(controller.isPictureInPicturePossible)")
             DispatchQueue.main.async {
@@ -220,7 +220,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         rateObserver?.invalidate()
         rateObserver = player?.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
             guard let newRate = change.newValue, let oldRate = change.oldValue else { return }
-            // 只在狀態真正改變時發送（避免重複發送）
+            // Only send when state actually changes (avoid duplicates)
             let wasPlaying = oldRate > 0
             let isPlaying = newRate > 0
             if wasPlaying != isPlaying {
@@ -236,7 +236,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     private func observeQueueItemChange() {
         currentItemObserver?.invalidate()
         currentItemObserver = player?.observe(\.currentItem, options: [.new, .old]) { [weak self] _, change in
-            // 確保是真的換了一個 item（不是 nil → item 的初始化）
+            // Ensure item actually changed (not nil → item initialization)
             guard change.oldValue != nil, change.newValue != nil else { return }
             AppLogger.player.debug("Player currentItem changed")
             self?.observeItemPlaybackState()
@@ -247,10 +247,10 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     func rebuildQueue(from urls: [URL], startingAt index: Int) {
         guard index >= 0 && index < urls.count else { return }
 
-        // 移除所有項目
+        // Remove all items
         player?.removeAllItems()
 
-        // 從指定索引開始建立新的播放列表
+        // Build new playlist starting from specified index
         for i in index..<urls.count {
             let item = AVPlayerItem(url: urls[i])
             player?.insert(item, after: nil)
@@ -346,12 +346,12 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     // MARK: - Private Methods
 
     private func observeItemPlaybackState() {
-        // 清除舊的觀察者
+        // Clear old observers
         clearItemObservers()
 
         guard let currentItem = player?.currentItem else { return }
 
-        // 觀察播放狀態
+        // Observe playback status
         statusObserver = currentItem.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
             let status: PlaybackItemStatus
             switch item.status {
@@ -361,7 +361,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             case .readyToPlay:
                 AppLogger.player.debug("Current Item status: readyToPlay. Current Item \(currentItem.description)")
                 status = .readyToPlay
-                // 發送時長
+                // Send duration
                 if item.duration.isNumeric {
                     self?.durationSubject.send(CMTimeGetSeconds(item.duration))
                 }
@@ -375,7 +375,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             self?.itemStatusSubject.send(status)
         }
 
-        // 觀察緩衝狀態
+        // Observe buffering state
         isPlaybackBufferEmptyObserver = currentItem.observe(\.isPlaybackBufferEmpty) { [weak self] item, _ in
             if item.isPlaybackBufferEmpty {
                 self?.bufferingSubject.send(.bufferEmpty)
@@ -394,7 +394,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             }
         }
 
-        // 觀察播放結束
+        // Observe playback end
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handlePlaybackEnd),
@@ -461,7 +461,7 @@ extension PlayerService: AVPictureInPictureControllerDelegate {
         restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
     ) {
         AppLogger.player.debug("PiP restore UI requested")
-        // 儲存 completion handler，等 UI 恢復後呼叫
+        // Store completion handler, call after UI is restored
         restoreUICompletionHandler = completionHandler
         restoreUISubject.send()
     }

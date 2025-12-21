@@ -88,7 +88,7 @@ final class RemoteControlInteractor {
             elapsedTime: elapsedTime,
             playbackRate: playbackRate,
             artwork: nil,
-            usePlaceholderArtwork: true  // 讓 Service 生成預設 Artwork
+            usePlaceholderArtwork: true  // Let Service generate placeholder artwork
         )
 
         remoteControlService.updateNowPlayingInfo(info)

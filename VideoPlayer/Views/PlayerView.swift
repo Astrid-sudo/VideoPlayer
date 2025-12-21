@@ -18,7 +18,6 @@ struct PlayerView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: PlayerUIView, context: Context) {
-        // 不需要更新，player 已經透過 layer 連接
     }
 }
 

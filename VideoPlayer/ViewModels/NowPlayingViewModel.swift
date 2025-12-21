@@ -264,7 +264,7 @@ final class NowPlayingViewModel: ObservableObject {
         layerConnector.restoreUIPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
-                // UI 已經恢復，通知 service
+                // UI restored, notify service
                 self?.layerConnector.pictureInPictureUIRestored()
             }
             .store(in: &cancellables)

@@ -76,7 +76,7 @@ final class MediaOptionsInteractor {
     // MARK: - Private Methods
 
     private func setupBindings() {
-        // 當播放項目狀態變為 readyToPlay 時，載入媒體選項
+        // Load media options when item becomes ready to play
         playerService.itemStatusPublisher
             .filter { $0 == .readyToPlay }
             .receive(on: DispatchQueue.main)
@@ -109,7 +109,7 @@ final class MediaOptionsInteractor {
                     avMediaCharacteristicLegible: legibleOptions
                 )
 
-                // 重置選擇
+                // Reset selection
                 selectedAudioIndex = nil
                 selectedSubtitleIndex = nil
             }

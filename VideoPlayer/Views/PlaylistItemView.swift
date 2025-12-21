@@ -13,7 +13,7 @@ struct PlaylistItemView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail (預設圖示)
+            // Thumbnail placeholder
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(LinearGradient.appBackground)

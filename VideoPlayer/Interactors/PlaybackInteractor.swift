@@ -114,14 +114,14 @@ final class PlaybackInteractor {
         AppLogger.playback.notice("Switch to video at index \(index): \(videos[index].title)")
 
         if index == currentIndex {
-            // 同一部影片，重頭播放
+            // Same video, restart from beginning
             playerService.seek(to: 0)
         } else if index == currentIndex + 1 {
-            // 下一部影片，直接 advance 不需重建 queue
+            // Next video, advance without rebuilding queue
             currentIndex = index
             playerService.advanceToNextItem()
         } else {
-            // 其他情況，需要重建 queue
+            // Other cases, need to rebuild queue
             currentIndex = index
             let urls = videos.compactMap { URL(string: $0.url) }
             playerService.rebuildQueue(from: urls, startingAt: index)
@@ -140,7 +140,7 @@ final class PlaybackInteractor {
     func playNextVideo() {
         let nextIndex = currentIndex + 1
         if nextIndex >= videos.count {
-            // 循環到第一個
+            // Loop back to first
             currentIndex = 0
             let urls = videos.compactMap { URL(string: $0.url) }
             playerService.rebuildQueue(from: urls, startingAt: 0)
@@ -173,7 +173,7 @@ final class PlaybackInteractor {
     }
 
     private func setupBindings() {
-        // 訂閱時間更新
+        // Subscribe to time updates
         playerService.timePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
@@ -181,7 +181,7 @@ final class PlaybackInteractor {
             }
             .store(in: &cancellables)
 
-        // 訂閱時長更新
+        // Subscribe to duration updates
         playerService.durationPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] duration in
@@ -189,7 +189,7 @@ final class PlaybackInteractor {
             }
             .store(in: &cancellables)
 
-        // 訂閱播放項目狀態
+        // Subscribe to item status
         playerService.itemStatusPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
@@ -197,7 +197,7 @@ final class PlaybackInteractor {
             }
             .store(in: &cancellables)
 
-        // 訂閱緩衝狀態
+        // Subscribe to buffering state
         playerService.bufferingPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
@@ -205,7 +205,7 @@ final class PlaybackInteractor {
             }
             .store(in: &cancellables)
 
-        // 訂閱播放結束，處理自動換集
+        // Subscribe to playback end for auto advancement
         playerService.playbackDidEndPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
@@ -213,7 +213,7 @@ final class PlaybackInteractor {
             }
             .store(in: &cancellables)
 
-        // 訂閱播放狀態變化（用於同步 PiP 等外部控制）
+        // Subscribe to playing state changes (for syncing with PiP and other external controls)
         playerService.isPlayingPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPlaying in
@@ -227,7 +227,7 @@ final class PlaybackInteractor {
         guard self.isPlaying != isPlaying else { return }
         self.isPlaying = isPlaying
 
-        // 同步時間觀察器狀態
+        // Sync time observer state
         if isPlaying {
             playerService.startTimeObservation(interval: PlayerConstants.timeObservationInterval)
         } else {
@@ -236,15 +236,15 @@ final class PlaybackInteractor {
     }
 
     private func handlePlaybackEnd() {
-        // AVQueuePlayer 會自動 advance，我們只需更新 index 並維持播放狀態
+        // AVQueuePlayer auto-advances, we just update index and maintain playback state
         let nextIndex = currentIndex + 1
         if nextIndex < videos.count {
             AppLogger.playback.notice("Video ended, advancing to next: \(videos[nextIndex].title)")
             currentIndex = nextIndex
-            // AVQueuePlayer 已自動切換，確保速率維持
+            // AVQueuePlayer already switched, ensure rate is maintained
             playerService.setRate(currentRate)
         } else {
-            // 播放完畢，循環到第一個
+            // Playlist ended, loop back to first
             AppLogger.playback.notice("Playlist ended, looping to first video")
             currentIndex = 0
             let urls = videos.compactMap { URL(string: $0.url) }
