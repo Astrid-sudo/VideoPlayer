@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NowPlayingView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = VideoPlayerViewModel(videos: Video.sampleVideos)
+    @StateObject private var viewModel = NowPlayingViewModel(videos: Video.sampleVideos)
     @StateObject private var orientationManager = OrientationManager()
     @State private var showControls = true
     @State private var showMediaOptionsSheet = false

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PlaylistView: View {
-    @ObservedObject var viewModel: VideoPlayerViewModel
+    @ObservedObject var viewModel: NowPlayingViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -44,6 +44,6 @@ struct PlaylistView: View {
 
 #Preview {
     PlaylistView(
-        viewModel: VideoPlayerViewModel(videos: Video.sampleVideos)
+        viewModel: NowPlayingViewModel(videos: Video.sampleVideos)
     )
 }

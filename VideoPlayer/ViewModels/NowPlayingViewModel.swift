@@ -1,5 +1,5 @@
 //
-//  VideoPlayerViewModel.swift
+//  NowPlayingViewModel.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -11,7 +11,7 @@ import SwiftUI
 
 /// 影片播放器 ViewModel
 /// 協調 Managers，管理 UI 狀態
-final class VideoPlayerViewModel: ObservableObject {
+final class NowPlayingViewModel: ObservableObject {
 
     // MARK: - UI State (Published)
 

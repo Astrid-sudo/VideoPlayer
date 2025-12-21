@@ -45,7 +45,7 @@ Please develop an app that can play a video from the Internet with custom UI and
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    VideoPlayerViewModel                      │
+│                     NowPlayingViewModel                      │
 │              Coordinates UI state and Managers               │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -94,7 +94,7 @@ VideoPlayer/
 │   ├── MediaOptionsManager.swift
 │   └── RemoteControlManager.swift
 ├── ViewModels/
-│   └── VideoPlayerViewModel.swift
+│   └── NowPlayingViewModel.swift
 ├── Views/
 │   ├── LandingView.swift
 │   ├── NowPlayingView.swift
