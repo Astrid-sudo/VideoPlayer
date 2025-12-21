@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  NowPlayingView.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct NowPlayingView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = VideoPlayerViewModel(videos: Video.sampleVideos)
     @StateObject private var orientationManager = OrientationManager()
@@ -216,5 +216,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    NowPlayingView()
 }

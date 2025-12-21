@@ -39,7 +39,7 @@ Please develop an app that can play a video from the Internet with custom UI and
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Views (SwiftUI)                       │
-│  LandingView, ContentView, PlayerView, PlayerControlView,   │
+│  LandingView, NowPlayingView, PlayerView, PlayerControlView, │
 │  PlaylistView, PlaylistItemView                              │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -97,7 +97,7 @@ VideoPlayer/
 │   └── VideoPlayerViewModel.swift
 ├── Views/
 │   ├── LandingView.swift
-│   ├── ContentView.swift
+│   ├── NowPlayingView.swift
 │   ├── PlayerView.swift
 │   ├── PlayerControlView.swift
 │   ├── PlaylistView.swift

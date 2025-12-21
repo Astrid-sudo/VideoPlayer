@@ -89,7 +89,7 @@ struct PlayerControlView: View {
     private var centerPlayButton: some View {
         switch viewModel.playerState {
         case .loading:
-            // Loading state handled by ContentView
+            // Loading state handled by NowPlayingView
             EmptyView()
 
         case .playing, .paused:
