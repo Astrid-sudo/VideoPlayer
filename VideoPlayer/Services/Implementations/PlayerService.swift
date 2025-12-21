@@ -163,6 +163,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
         // 觀察 PiP 可用狀態
         pipPossibleObservation = controller?.observe(\.isPictureInPicturePossible, options: [.initial, .new]) { [weak self] controller, _ in
+            AppLogger.player.debug("PiP possible: \(controller.isPictureInPicturePossible)")
             DispatchQueue.main.async {
                 self?.isPiPPossibleSubject.send(controller.isPictureInPicturePossible)
             }
@@ -207,6 +208,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             let wasPlaying = oldRate > 0
             let isPlaying = newRate > 0
             if wasPlaying != isPlaying {
+                AppLogger.player.debug("Player rate changed: \(oldRate) -> \(newRate)")
                 DispatchQueue.main.async {
                     self?.isPlayingSubject.send(isPlaying)
                 }
@@ -220,6 +222,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         currentItemObserver = player?.observe(\.currentItem, options: [.new, .old]) { [weak self] _, change in
             // 確保是真的換了一個 item（不是 nil → item 的初始化）
             guard change.oldValue != nil, change.newValue != nil else { return }
+            AppLogger.player.debug("Player currentItem changed")
             self?.observeItemPlaybackState()
         }
     }
@@ -319,16 +322,20 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             let status: PlaybackItemStatus
             switch item.status {
             case .unknown:
+                AppLogger.player.debug("Current Item status: unknown. Current Item \(currentItem.description)")
                 status = .unknown
             case .readyToPlay:
+                AppLogger.player.debug("Current Item status: readyToPlay. Current Item \(currentItem.description)")
                 status = .readyToPlay
                 // 發送時長
                 if item.duration.isNumeric {
                     self?.durationSubject.send(CMTimeGetSeconds(item.duration))
                 }
             case .failed:
+                AppLogger.player.error("Current Item status: failed - \(item.error?.localizedDescription ?? "Unknown error"). Current Item \(currentItem.description)")
                 status = .failed(item.error)
             @unknown default:
+                AppLogger.player.debug("Current Item status: unknown (default). Current Item \(currentItem.description)")
                 status = .unknown
             }
             self?.itemStatusSubject.send(status)
@@ -363,6 +370,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     }
 
     @objc private func handlePlaybackEnd() {
+        AppLogger.player.debug("Playback did end")
         playbackDidEndSubject.send()
     }
 
@@ -405,10 +413,12 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 extension PlayerService: AVPictureInPictureControllerDelegate {
 
     func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        AppLogger.player.debug("PiP will start")
         isPiPActiveSubject.send(true)
     }
 
     func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        AppLogger.player.debug("PiP did stop")
         isPiPActiveSubject.send(false)
     }
 
@@ -416,6 +426,7 @@ extension PlayerService: AVPictureInPictureControllerDelegate {
         _ pictureInPictureController: AVPictureInPictureController,
         restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
     ) {
+        AppLogger.player.debug("PiP restore UI requested")
         // 儲存 completion handler，等 UI 恢復後呼叫
         restoreUICompletionHandler = completionHandler
         restoreUISubject.send()

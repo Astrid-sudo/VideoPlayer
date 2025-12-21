@@ -27,8 +27,14 @@ final class NetworkMonitor: NetworkMonitorProtocol {
 
     private func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
+            let isConnected = path.status == .satisfied
+            if isConnected {
+                AppLogger.network.notice("Network connected")
+            } else {
+                AppLogger.network.warning("Network disconnected")
+            }
             DispatchQueue.main.async {
-                self?.isConnectedSubject.send(path.status == .satisfied)
+                self?.isConnectedSubject.send(isConnected)
             }
         }
         monitor.start(queue: queue)

@@ -60,12 +60,14 @@ final class PlaybackManager {
 
     /// 播放
     func play() {
+        AppLogger.playback.notice("Play")
         playerService.play()
         playerService.setRate(currentRate)
     }
 
     /// 暫停
     func pause() {
+        AppLogger.playback.notice("Pause")
         playerService.pause()
     }
 
@@ -98,6 +100,7 @@ final class PlaybackManager {
 
     /// 設定播放速度
     func setSpeed(_ rate: Float) {
+        AppLogger.playback.info("Speed changed to \(rate)x")
         currentRate = rate
         if isPlaying {
             playerService.setRate(rate)
@@ -109,6 +112,7 @@ final class PlaybackManager {
     /// 切換到指定索引的影片並播放
     func playVideo(at index: Int) {
         guard index >= 0 && index < videos.count else { return }
+        AppLogger.playback.notice("Switch to video at index \(index): \(videos[index].title)")
 
         if index == currentIndex {
             // 同一部影片，重頭播放
@@ -246,11 +250,13 @@ final class PlaybackManager {
         // AVQueuePlayer 會自動 advance，我們只需更新 index 並維持播放狀態
         let nextIndex = currentIndex + 1
         if nextIndex < videos.count {
+            AppLogger.playback.notice("Video ended, advancing to next: \(videos[nextIndex].title)")
             currentIndex = nextIndex
             // AVQueuePlayer 已自動切換，確保速率維持
             playerService.setRate(currentRate)
         } else {
             // 播放完畢，循環到第一個
+            AppLogger.playback.notice("Playlist ended, looping to first video")
             currentIndex = 0
             let urls = videos.compactMap { URL(string: $0.url) }
             playerService.rebuildQueue(from: urls, startingAt: 0)
@@ -262,7 +268,7 @@ final class PlaybackManager {
         do {
             try audioSessionService.activate()
         } catch {
-            print("Failed to activate audio session: \(error)")
+            AppLogger.playback.error("Failed to activate audio session: \(error)")
         }
     }
 }

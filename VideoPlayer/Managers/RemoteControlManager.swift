@@ -37,14 +37,38 @@ final class RemoteControlManager {
     /// 設定遠程控制命令
     func setupCommands() {
         let handlers = RemoteCommandHandlers(
-            onPlay: { [weak self] in self?.onPlay?() },
-            onPause: { [weak self] in self?.onPause?() },
-            onTogglePlayPause: { [weak self] in self?.onTogglePlayPause?() },
-            onNextTrack: { [weak self] in self?.onNextTrack?() },
-            onPreviousTrack: { [weak self] in self?.onPreviousTrack?() },
-            onSkipForward: { [weak self] seconds in self?.onSkipForward?(seconds) },
-            onSkipBackward: { [weak self] seconds in self?.onSkipBackward?(seconds) },
-            onChangePlaybackPosition: { [weak self] position in self?.onSeekToPosition?(position) }
+            onPlay: { [weak self] in
+                AppLogger.remoteControl.info("Remote: Play")
+                self?.onPlay?()
+            },
+            onPause: { [weak self] in
+                AppLogger.remoteControl.info("Remote: Pause")
+                self?.onPause?()
+            },
+            onTogglePlayPause: { [weak self] in
+                AppLogger.remoteControl.info("Remote: Toggle play/pause")
+                self?.onTogglePlayPause?()
+            },
+            onNextTrack: { [weak self] in
+                AppLogger.remoteControl.info("Remote: Next track")
+                self?.onNextTrack?()
+            },
+            onPreviousTrack: { [weak self] in
+                AppLogger.remoteControl.info("Remote: Previous track")
+                self?.onPreviousTrack?()
+            },
+            onSkipForward: { [weak self] seconds in
+                AppLogger.remoteControl.info("Remote: Skip forward \(seconds)s")
+                self?.onSkipForward?(seconds)
+            },
+            onSkipBackward: { [weak self] seconds in
+                AppLogger.remoteControl.info("Remote: Skip backward \(seconds)s")
+                self?.onSkipBackward?(seconds)
+            },
+            onChangePlaybackPosition: { [weak self] position in
+                AppLogger.remoteControl.info("Remote: Seek to \(position)s")
+                self?.onSeekToPosition?(position)
+            }
         )
 
         remoteControlService.setupCommands(handlers: handlers)
