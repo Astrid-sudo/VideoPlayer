@@ -38,7 +38,7 @@ struct PlaylistView: View {
                 }
             }
         }
-        .background(Color(uiColor: .systemBackground))
+		.background(Color(.systemBackground))
     }
 }
 

@@ -52,14 +52,13 @@ struct NowPlayingView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.white)
+						.foregroundColor(Color(.label))
                         .fontWeight(.semibold)
                 }
             }
         }
-        .toolbarBackground(Color.black, for: .navigationBar)
+		.toolbarBackground(Color(.systemBackground), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
             if isLandscape {
                 // Enter fullscreen when device rotates to landscape
