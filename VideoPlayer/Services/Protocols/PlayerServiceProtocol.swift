@@ -79,10 +79,10 @@ protocol PlayerServiceProtocol: AnyObject {
     // MARK: - Media Options
 
     /// 取得當前播放項目的媒體選項
-    func getMediaOptions() -> MediaSelectionOptions?
+    func getMediaOptions() async -> MediaSelectionOptions?
 
     /// 選擇媒體選項（音軌或字幕）
-    func selectMediaOption(type: MediaSelectionType, locale: Any?)
+    func selectMediaOption(type: MediaSelectionType, locale: Any?) async
 }
 
 // MARK: - Supporting Types
