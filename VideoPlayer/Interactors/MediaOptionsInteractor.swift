@@ -97,11 +97,11 @@ final class MediaOptionsInteractor {
             }
 
             let audibleOptions = options.audioOptions.map { option in
-                DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
+                DisplayNameLocale(displayName: option.displayName, locale: option.locale)
             }
 
             let legibleOptions = options.subtitleOptions.map { option in
-                DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
+                DisplayNameLocale(displayName: option.displayName, locale: option.locale)
             }
 
             await MainActor.run {

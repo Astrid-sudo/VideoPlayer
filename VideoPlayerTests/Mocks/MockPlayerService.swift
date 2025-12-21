@@ -30,7 +30,7 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
     var stopTimeObservationCallCount = 0
     var getMediaOptionsCallCount = 0
     var selectMediaOptionType: MediaSelectionType?
-    var selectMediaOptionLocale: Any?
+    var selectMediaOptionLocale: Locale?
 
     // MARK: - Stub Properties (模擬回傳值)
 
@@ -174,7 +174,7 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
         return stubbedMediaOptions
     }
 
-    func selectMediaOption(type: MediaSelectionType, locale: Any?) async {
+    func selectMediaOption(type: MediaSelectionType, locale: Locale?) async {
         selectMediaOptionType = type
         selectMediaOptionLocale = locale
     }

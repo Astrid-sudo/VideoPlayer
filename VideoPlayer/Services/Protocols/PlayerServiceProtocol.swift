@@ -82,7 +82,7 @@ protocol PlayerServiceProtocol: AnyObject {
     func getMediaOptions() async -> MediaSelectionOptions?
 
     /// 選擇媒體選項（音軌或字幕）
-    func selectMediaOption(type: MediaSelectionType, locale: Any?) async
+    func selectMediaOption(type: MediaSelectionType, locale: Locale?) async
 }
 
 // MARK: - Supporting Types
@@ -96,7 +96,7 @@ enum MediaSelectionType {
 /// 媒體選項資訊
 struct MediaSelectionOption {
     let displayName: String
-    let locale: Any?  // 內部使用 Locale，但對外隱藏型別
+    let locale: Locale?
 }
 
 /// 媒體選項集合

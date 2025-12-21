@@ -285,7 +285,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         return MediaSelectionOptions(audioOptions: audioOptions, subtitleOptions: subtitleOptions)
     }
 
-    func selectMediaOption(type: MediaSelectionType, locale: Any?) async {
+    func selectMediaOption(type: MediaSelectionType, locale: Locale?) async {
         guard let currentItem = player?.currentItem else { return }
 
         let characteristic: AVMediaCharacteristic = (type == .audio) ? .audible : .legible
@@ -293,7 +293,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         do {
             guard let group = try await currentItem.asset.loadMediaSelectionGroup(for: characteristic) else { return }
 
-            if let locale = locale as? Locale {
+            if let locale = locale {
                 let options = AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
                 if let option = options.first {
                     currentItem.select(option, in: group)
