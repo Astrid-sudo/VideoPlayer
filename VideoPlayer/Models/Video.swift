@@ -7,8 +7,9 @@
 
 import Foundation
 
-struct Video: Identifiable {
-    let id = UUID()
+struct Video: Identifiable, Hashable {
+    /// Use URL as stable ID to avoid generating different UUIDs on each instance creation
+    var id: String { url }
     let title: String
     let url: String
     let thumbnailURL: String?

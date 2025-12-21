@@ -7,7 +7,7 @@
 
 import CoreMedia
 
-struct TimeManager {
+enum TimeManager {
 
     /// Transfer seconds(Float) to 00:00:00(String).
     /// - Parameter seconds: The time will be transfered to timecode String.
