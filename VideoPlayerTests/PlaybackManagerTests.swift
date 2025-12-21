@@ -180,6 +180,8 @@ struct PlaybackManagerTests {
         #expect(mockPlayer.setRateValue == 2.0)
     }
 
+    // Setting rate on a paused player would cause it to start playing.
+    // Speed should only be stored and applied when play() is called.
     @Test func setSpeedWhilePausedDoesNotCallSetRate() {
         let (sut, mockPlayer, _) = makeSUT()
         mockPlayer.setRateValue = nil
@@ -217,15 +219,214 @@ struct PlaybackManagerTests {
         #expect(sut.bufferingState == .bufferEmpty)
     }
 
+    // When playback ends, it should loop back to the first video and continue playing
     @Test func playbackDidEndContinuesPlayingWithLoop() async throws {
-        // 播放結束時會循環回第一首繼續播放
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
         try await Task.sleep(for: .milliseconds(50))
         #expect(sut.isPlaying == true)
         mockPlayer.playbackDidEndSubject.send()
         try await Task.sleep(for: .milliseconds(50))
-        // 循環播放，isPlaying 應該仍為 true
         #expect(sut.isPlaying == true)
     }
+
+    // MARK: - Playback End Tests
+
+    // When a video ends in the middle of playlist, index should advance and rate should be maintained
+    @Test func playbackDidEndAtMiddleVideoAdvancesIndexAndMaintainsRate() async throws {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        sut.setSpeed(1.5)
+        sut.play()
+        try await Task.sleep(for: .milliseconds(50))
+        mockPlayer.setRateValue = nil
+
+        mockPlayer.playbackDidEndSubject.send()
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(sut.currentIndex == 1)
+        #expect(mockPlayer.setRateValue == 1.5)
+    }
+
+    // MARK: - External Control Tests
+
+    // When external control (e.g., PiP) starts playback, time observation should start
+    @Test func externalPlayControlStartsTimeObservation() async throws {
+        let (sut, mockPlayer, _) = makeSUT()
+
+        mockPlayer.isPlayingSubject.send(true)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(sut.isPlaying == true)
+        #expect(mockPlayer.startTimeObservationInterval == 0.5)
+    }
+
+    // When external control (e.g., PiP) pauses playback, time observation should stop
+    @Test func externalPauseControlStopsTimeObservation() async throws {
+        let (sut, mockPlayer, _) = makeSUT()
+        mockPlayer.isPlayingSubject.send(true)
+        try await Task.sleep(for: .milliseconds(50))
+
+        mockPlayer.isPlayingSubject.send(false)
+        try await Task.sleep(for: .milliseconds(50))
+
+        #expect(sut.isPlaying == false)
+        #expect(mockPlayer.stopTimeObservationCallCount == 1)
+    }
+
+    // MARK: - Playlist Tests
+
+    @Test func initSetsPlaylistOnPlayerService() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (_, mockPlayer, _) = makeSUT(videos: videos)
+        #expect(mockPlayer.setPlaylistUrls?.count == 3)
+    }
+
+    @Test func playVideoAtSameIndexSeeksToZero() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+
+        sut.playVideo(at: 0)
+
+        #expect(mockPlayer.seekToSeconds == 0)
+        #expect(sut.currentIndex == 0)
+    }
+
+    @Test func playVideoAtNextIndexAdvancesToNextItem() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+
+        sut.playVideo(at: 1)
+
+        #expect(mockPlayer.advanceToNextItemCallCount == 1)
+        #expect(sut.currentIndex == 1)
+    }
+
+    @Test func playVideoAtOtherIndexRebuildsQueue() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+
+        sut.playVideo(at: 2)
+
+        #expect(mockPlayer.rebuildQueueStartIndex == 2)
+        #expect(sut.currentIndex == 2)
+    }
+
+    @Test func playVideoAtInvalidIndexDoesNothing() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        mockPlayer.reset()
+
+        sut.playVideo(at: 10)
+
+        #expect(mockPlayer.playCallCount == 0)
+        #expect(sut.currentIndex == 0)
+    }
+
+    @Test func playVideoAtNegativeIndexDoesNothing() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        mockPlayer.reset()
+
+        sut.playVideo(at: -1)
+
+        #expect(mockPlayer.playCallCount == 0)
+        #expect(sut.currentIndex == 0)
+    }
+
+    @Test func playNextVideoAdvancesToNextItem() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+
+        sut.playNextVideo()
+
+        #expect(mockPlayer.advanceToNextItemCallCount == 1)
+        #expect(sut.currentIndex == 1)
+    }
+
+    @Test func playNextVideoAtLastIndexLoopsToFirst() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        sut.playVideo(at: 2)
+        mockPlayer.reset()
+
+        sut.playNextVideo()
+
+        #expect(mockPlayer.rebuildQueueStartIndex == 0)
+        #expect(sut.currentIndex == 0)
+    }
+
+    @Test func playPreviousVideoGoesToPreviousIndex() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        sut.playVideo(at: 2)
+        mockPlayer.reset()
+
+        sut.playPreviousVideo()
+
+        #expect(sut.currentIndex == 1)
+    }
+
+    @Test func playPreviousVideoAtFirstIndexLoopsToLast() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, _, _) = makeSUT(videos: videos)
+
+        sut.playPreviousVideo()
+
+        #expect(sut.currentIndex == 2)
+    }
+
+    @Test func updateVideoDurationUpdatesVideoAtIndex() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, _, _) = makeSUT(videos: videos)
+
+        sut.updateVideoDuration(120.5, at: 1)
+
+        #expect(sut.videos[1].duration == 120.5)
+    }
+
+    @Test func updateVideoDurationAtInvalidIndexDoesNothing() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, _, _) = makeSUT(videos: videos)
+
+        sut.updateVideoDuration(120.5, at: 10)
+
+        // Should not crash, videos remain unchanged
+        #expect(sut.videos.count == 3)
+    }
+
+    @Test func reloadCurrentVideoRebuildsQueue() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        sut.playVideo(at: 1)
+        mockPlayer.reset()
+
+        sut.reloadCurrentVideo()
+
+        #expect(mockPlayer.rebuildQueueStartIndex == 1)
+        #expect(mockPlayer.playCallCount == 1)
+    }
+
+    @Test func currentVideoReturnsCorrectVideo() {
+        let videos = PlaybackManagerTests.sampleVideos
+        let (sut, _, _) = makeSUT(videos: videos)
+
+        sut.playVideo(at: 1)
+
+        #expect(sut.currentVideo?.title == "Video 2")
+    }
+
+    @Test func currentVideoReturnsNilForEmptyPlaylist() {
+        let (sut, _, _) = makeSUT(videos: [])
+
+        #expect(sut.currentVideo == nil)
+    }
+
+    // MARK: - Sample Data
+
+    private static let sampleVideos: [Video] = [
+        Video(title: "Video 1", url: "https://example.com/1.m3u8", description: "Desc 1"),
+        Video(title: "Video 2", url: "https://example.com/2.m3u8", description: "Desc 2"),
+        Video(title: "Video 3", url: "https://example.com/3.m3u8", description: "Desc 3")
+    ]
 }
