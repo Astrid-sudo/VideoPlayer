@@ -225,18 +225,18 @@ struct PlayerControlView: View {
         }
         .actionSheet(isPresented: $showSpeedMenu) {
             ActionSheet(
-                title: Text("播放速度"),
+                title: Text("speed.title".localized),
                 buttons: [
                     .default(Text("0.5x")) {
                         viewModel.adjustSpeed(.slow)
                     },
-                    .default(Text("1.0x (正常)")) {
+                    .default(Text("speed.normal".localized)) {
                         viewModel.adjustSpeed(.normal)
                     },
                     .default(Text("1.5x")) {
                         viewModel.adjustSpeed(.fast)
                     },
-                    .cancel(Text("取消"))
+                    .cancel(Text("common.cancel".localized))
                 ]
             )
         }
@@ -301,7 +301,7 @@ struct MediaOptionsSheet: View {
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicAudible.isEmpty {
                     MediaOptionSection(
-                        title: "音訊",
+                        title: "mediaOptions.audio".localized,
                         options: mediaOption.avMediaCharacteristicAudible,
                         selectedIndex: viewModel.selectedAudioIndex
                     ) { index in
@@ -314,7 +314,7 @@ struct MediaOptionsSheet: View {
                 if let mediaOption = viewModel.mediaOption,
                    !mediaOption.avMediaCharacteristicLegible.isEmpty {
                     MediaOptionSection(
-                        title: "字幕",
+                        title: "mediaOptions.subtitles".localized,
                         options: mediaOption.avMediaCharacteristicLegible,
                         selectedIndex: viewModel.selectedSubtitleIndex
                     ) { index in
@@ -323,11 +323,11 @@ struct MediaOptionsSheet: View {
                     }
                 }
             }
-            .navigationTitle("字幕與音訊")
+            .navigationTitle("mediaOptions.title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("common.done".localized) {
                         dismiss()
                     }
                 }

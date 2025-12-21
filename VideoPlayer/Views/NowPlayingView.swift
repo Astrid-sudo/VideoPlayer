@@ -52,14 +52,13 @@ struct NowPlayingView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.white)
+						.foregroundColor(Color(.label))
                         .fontWeight(.semibold)
                 }
             }
         }
-        .toolbarBackground(Color.black, for: .navigationBar)
+		.toolbarBackground(Color(.systemBackground), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: orientationManager.isLandscape) { _, isLandscape in
             if isLandscape {
                 // Enter fullscreen when device rotates to landscape
@@ -100,20 +99,20 @@ struct NowPlayingView: View {
         .onDisappear {
             cancelHideControls()
         }
-        .alert("播放錯誤", isPresented: $showPlaybackErrorAlert) {
-            Button("繼續播放下一個影片") {
+        .alert("alert.playbackError.title".localized, isPresented: $showPlaybackErrorAlert) {
+            Button("alert.playbackError.continueNext".localized) {
                 viewModel.playNextVideo()
             }
         } message: {
-            Text("此影片無法播放")
+            Text("alert.playbackError.message".localized)
         }
-        .alert("網路連線異常", isPresented: $showNetworkErrorAlert) {
-            Button("前往設定") {
+        .alert("alert.networkError.title".localized, isPresented: $showNetworkErrorAlert) {
+            Button("alert.networkError.goToSettings".localized) {
                 URLOpener.openSettings()
             }
-            Button("取消", role: .cancel) { }
+            Button("common.cancel".localized, role: .cancel) { }
         } message: {
-            Text("請檢查網路設定後重試")
+            Text("alert.networkError.message".localized)
         }
     }
 

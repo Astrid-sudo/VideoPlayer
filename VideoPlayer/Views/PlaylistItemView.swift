@@ -36,15 +36,6 @@ struct PlaylistItemView: View {
                     .foregroundColor(.secondary)
                     .lineLimit(2)
             }
-
-            Spacer()
-
-            // Playing indicator
-            if isPlaying {
-                Image(systemName: "speaker.wave.2.fill")
-                    .foregroundColor(.blue)
-                    .font(.title3)
-            }
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
