@@ -99,7 +99,7 @@ class OrientationManager: ObservableObject {
 
             // Request geometry update
             windowScene.requestGeometryUpdate(geometryPreferences) { error in
-                print("Orientation update error: \(error.localizedDescription)")
+                AppLogger.ui.error("Orientation update error: \(error.localizedDescription)")
             }
         }
     }

@@ -262,7 +262,7 @@ final class PlaybackManager {
         do {
             try audioSessionService.activate()
         } catch {
-            print("Failed to activate audio session: \(error)")
+            AppLogger.playback.error("Failed to activate audio session: \(error)")
         }
     }
 }
