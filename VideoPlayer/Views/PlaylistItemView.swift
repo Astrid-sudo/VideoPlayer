@@ -47,6 +47,7 @@ struct PlaylistItemView: View {
 // MARK: - App Gradient
 
 extension LinearGradient {
+    /// App-wide gradient background.
     static let appBackground = LinearGradient(
         colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
         startPoint: .topLeading,

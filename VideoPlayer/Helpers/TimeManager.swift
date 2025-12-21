@@ -7,6 +7,7 @@
 
 import CoreMedia
 
+/// Utility for time formatting and calculation.
 enum TimeManager {
 
     /// Transfer seconds(Float) to 00:00:00(String).
@@ -62,11 +63,13 @@ enum TimeManager {
 
 // MARK: - Supporting Types
 
+/// Time jump direction with seconds.
 enum JumpTimeType {
     case forward(Double)
     case backward(Double)
 }
 
+/// Playback speed options.
 enum SpeedButtonType {
     case slow
     case normal

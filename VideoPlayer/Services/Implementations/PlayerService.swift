@@ -9,8 +9,7 @@ import AVFoundation
 import AVKit
 import Combine
 
-/// 播放器服務實作
-/// 封裝 AVQueuePlayer，依賴 AVFoundation（最外層）
+/// Wraps AVQueuePlayer with KVO observers for playback state management.
 final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Private Properties
@@ -204,7 +203,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         observeItemPlaybackState()
     }
 
-    /// 觀察 AVPlayer 的 rate 變化（用於同步 PiP 等外部控制的播放狀態）
+    /// Observes player rate changes to sync external controls like PiP.
     private func observePlayerRate() {
         rateObserver?.invalidate()
         rateObserver = player?.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
@@ -221,7 +220,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         }
     }
 
-    /// 觀察 AVQueuePlayer 的 currentItem 變化（自動換集時觸發）
+    /// Observes queue item changes for auto-advancement.
     private func observeQueueItemChange() {
         currentItemObserver?.invalidate()
         currentItemObserver = player?.observe(\.currentItem, options: [.new, .old]) { [weak self] _, change in

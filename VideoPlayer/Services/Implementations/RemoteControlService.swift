@@ -8,8 +8,7 @@
 import MediaPlayer
 import UIKit
 
-/// 遠程控制服務實作
-/// 封裝 MPRemoteCommandCenter 和 MPNowPlayingInfoCenter，依賴 MediaPlayer（最外層）
+/// Wraps MPRemoteCommandCenter and MPNowPlayingInfoCenter for remote control.
 final class RemoteControlService: RemoteControlServiceProtocol {
 
     // MARK: - Private Properties

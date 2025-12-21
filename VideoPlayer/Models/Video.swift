@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Video metadata model.
 struct Video: Identifiable, Hashable {
     /// Use URL as stable ID to avoid generating different UUIDs on each instance creation
     var id: String { url }

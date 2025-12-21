@@ -8,8 +8,7 @@
 import Foundation
 import Combine
 
-/// 播放控制與播放列表業務邏輯
-/// 依賴 PlayerServiceProtocol、AudioSessionServiceProtocol
+/// Handles playback control and playlist management logic.
 final class PlaybackInteractor {
 
     // MARK: - Dependencies
@@ -58,20 +57,20 @@ final class PlaybackInteractor {
 
     // MARK: - Playback Control
 
-    /// 播放
+    /// Starts playback.
     func play() {
         AppLogger.playback.notice("Play")
         playerService.play()
         playerService.setRate(currentRate)
     }
 
-    /// 暫停
+    /// Pauses playback.
     func pause() {
         AppLogger.playback.notice("Pause")
         playerService.pause()
     }
 
-    /// 切換播放/暫停
+    /// Toggles between play and pause.
     func togglePlay() {
         if isPlaying {
             pause()
@@ -80,25 +79,25 @@ final class PlaybackInteractor {
         }
     }
 
-    /// 跳轉到指定時間（秒）
+    /// Seeks to the specified time in seconds.
     func seek(to seconds: TimeInterval) {
         let validSeconds = max(0, min(seconds, duration))
         playerService.seek(to: validSeconds)
     }
 
-    /// 快進指定秒數
+    /// Skips forward by the specified seconds.
     func skipForward(_ seconds: TimeInterval) {
         let targetTime = currentTime + seconds
         seek(to: targetTime)
     }
 
-    /// 快退指定秒數
+    /// Skips backward by the specified seconds.
     func skipBackward(_ seconds: TimeInterval) {
         let targetTime = currentTime - seconds
         seek(to: targetTime)
     }
 
-    /// 設定播放速度
+    /// Sets playback speed rate.
     func setSpeed(_ rate: Float) {
         AppLogger.playback.info("Speed changed to \(rate)x")
         currentRate = rate
@@ -109,7 +108,7 @@ final class PlaybackInteractor {
 
     // MARK: - Playlist Control
 
-    /// 切換到指定索引的影片並播放
+    /// Switches to the video at the specified index and plays.
     func playVideo(at index: Int) {
         guard index >= 0 && index < videos.count else { return }
         AppLogger.playback.notice("Switch to video at index \(index): \(videos[index].title)")
@@ -130,14 +129,14 @@ final class PlaybackInteractor {
         play()
     }
 
-    /// Reload current video (force rebuild queue)
+    /// Reloads current video by rebuilding the queue.
     func reloadCurrentVideo() {
         let urls = videos.compactMap { URL(string: $0.url) }
         playerService.rebuildQueue(from: urls, startingAt: currentIndex)
         play()
     }
 
-    /// 切換到下一個影片並播放
+    /// Advances to and plays the next video.
     func playNextVideo() {
         let nextIndex = currentIndex + 1
         if nextIndex >= videos.count {
@@ -152,7 +151,7 @@ final class PlaybackInteractor {
         play()
     }
 
-    /// 更新影片時長（當取得實際時長時）
+    /// Updates video duration when actual duration is available.
     func updateVideoDuration(_ duration: TimeInterval, at index: Int) {
         guard index >= 0 && index < videos.count else { return }
 
@@ -223,7 +222,7 @@ final class PlaybackInteractor {
             .store(in: &cancellables)
     }
 
-    /// 同步外部控制（如 PiP）的播放狀態
+    /// Syncs playing state from external controls (e.g., PiP).
     private func syncPlayingState(_ isPlaying: Bool) {
         guard self.isPlaying != isPlaying else { return }
         self.isPlaying = isPlaying

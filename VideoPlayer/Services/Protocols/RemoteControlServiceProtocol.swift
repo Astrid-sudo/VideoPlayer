@@ -7,23 +7,22 @@
 
 import Foundation
 
-/// 遠程控制服務協議
-/// 純 Swift 協議，不依賴 MediaPlayer
+/// Protocol for remote control and Now Playing info management.
 protocol RemoteControlServiceProtocol: AnyObject {
 
-    /// 設定遠程控制命令的回調
+    /// Configures remote control command handlers.
     func setupCommands(handlers: RemoteCommandHandlers)
 
-    /// 更新 Now Playing 資訊
+    /// Updates Now Playing info on lock screen.
     func updateNowPlayingInfo(_ info: NowPlayingInfo)
 
-    /// 清除 Now Playing 資訊
+    /// Clears Now Playing info.
     func clearNowPlayingInfo()
 }
 
 // MARK: - Supporting Types
 
-/// 遠程控制命令回調
+/// Remote control command callbacks.
 struct RemoteCommandHandlers {
     var onPlay: (() -> Void)?
     var onPause: (() -> Void)?
@@ -55,7 +54,7 @@ struct RemoteCommandHandlers {
     }
 }
 
-/// Now Playing 資訊
+/// Now Playing info for lock screen display.
 struct NowPlayingInfo {
     var title: String?
     var artist: String?
@@ -84,7 +83,7 @@ struct NowPlayingInfo {
     }
 }
 
-/// Now Playing 封面圖
+/// Now Playing artwork image data.
 struct NowPlayingArtwork {
     let imageData: Data
     let size: CGSize

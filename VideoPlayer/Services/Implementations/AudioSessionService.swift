@@ -7,8 +7,7 @@
 
 import AVFoundation
 
-/// 音訊會話服務實作
-/// 封裝 AVAudioSession，依賴 AVFoundation（最外層）
+/// Wraps AVAudioSession for audio playback configuration.
 final class AudioSessionService: AudioSessionServiceProtocol {
 
     // MARK: - Initialization
