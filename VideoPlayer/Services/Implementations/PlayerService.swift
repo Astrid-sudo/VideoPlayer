@@ -93,6 +93,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Player Connection
 
+    /// Connects player to AVPlayerLayer and sets up PiP.
     func connect(layer: AVPlayerLayer) {
         // Defer player connection to avoid blocking navigation animation
         DispatchQueue.main.async { [weak self] in
@@ -103,18 +104,21 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Protocol Properties
 
+    /// Duration of current item in seconds.
     var currentItemDuration: TimeInterval? {
         guard let duration = player?.currentItem?.duration,
               duration.isNumeric else { return nil }
         return CMTimeGetSeconds(duration)
     }
 
+    /// Current playback time in seconds.
     var currentItemCurrentTime: TimeInterval? {
         guard let time = player?.currentItem?.currentTime(),
               time.isNumeric else { return nil }
         return CMTimeGetSeconds(time)
     }
 
+    /// Current playback rate.
     var currentRate: Float {
         player?.rate ?? 0
     }
@@ -131,18 +135,21 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Picture in Picture
 
+    /// Starts Picture in Picture if available.
     func startPictureInPicture() {
         guard let pipController = pipController,
               pipController.isPictureInPicturePossible else { return }
         pipController.startPictureInPicture()
     }
 
+    /// Stops Picture in Picture if active.
     func stopPictureInPicture() {
         guard let pipController = pipController,
               pipController.isPictureInPictureActive else { return }
         pipController.stopPictureInPicture()
     }
 
+    /// Notifies that UI has been restored after PiP.
     func pictureInPictureUIRestored() {
         restoreUICompletionHandler?(true)
         restoreUICompletionHandler = nil
@@ -176,25 +183,30 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Playback Control
 
+    /// Starts playback.
     func play() {
         player?.play()
     }
 
+    /// Pauses playback.
     func pause() {
         player?.pause()
     }
 
+    /// Seeks to the specified time in seconds.
     func seek(to seconds: TimeInterval) {
         let time = CMTime(seconds: seconds, preferredTimescale: 1)
         player?.seek(to: time)
     }
 
+    /// Sets playback rate.
     func setRate(_ rate: Float) {
         player?.rate = rate
     }
 
     // MARK: - Queue Management
 
+    /// Initializes player with playlist URLs.
     func setPlaylist(urls: [URL]) {
         let items = urls.map { AVPlayerItem(url: $0) }
         player = AVQueuePlayer(items: items)
@@ -231,6 +243,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         }
     }
 
+    /// Rebuilds queue starting from the specified index.
     func rebuildQueue(from urls: [URL], startingAt index: Int) {
         guard index >= 0 && index < urls.count else { return }
 
@@ -246,6 +259,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         observeItemPlaybackState()
     }
 
+    /// Advances to the next item in queue.
     func advanceToNextItem() {
         player?.advanceToNextItem()
         observeItemPlaybackState()
@@ -253,6 +267,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Media Options
 
+    /// Retrieves available audio and subtitle options.
     func getMediaOptions() async -> MediaSelectionOptions? {
         guard let currentItem = player?.currentItem else { return nil }
 
@@ -284,6 +299,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         return MediaSelectionOptions(audioOptions: audioOptions, subtitleOptions: subtitleOptions)
     }
 
+    /// Selects audio or subtitle track by locale.
     func selectMediaOption(type: MediaSelectionType, locale: Locale?) async {
         guard let currentItem = player?.currentItem else { return }
 
@@ -305,6 +321,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Time Observation
 
+    /// Starts periodic time observation at the specified interval.
     func startTimeObservation(interval: TimeInterval) {
         guard let player = player else { return }
 
@@ -319,6 +336,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         }
     }
 
+    /// Stops periodic time observation.
     func stopTimeObservation() {
         guard let player = player, let token = timeObserverToken else { return }
         player.removeTimeObserver(token)
