@@ -9,7 +9,7 @@ import SwiftUI
 import AVKit
 
 struct PlayerControlView: View {
-    @ObservedObject var viewModel: VideoPlayerViewModel
+    @ObservedObject var viewModel: NowPlayingViewModel
     @State private var isSeekingProgress = false
     @State private var showSpeedMenu = false
     @State private var showMediaOptionsSheet = false
@@ -89,7 +89,7 @@ struct PlayerControlView: View {
     private var centerPlayButton: some View {
         switch viewModel.playerState {
         case .loading:
-            // Loading state handled by ContentView
+            // Loading state handled by NowPlayingView
             EmptyView()
 
         case .playing, .paused:
@@ -291,7 +291,7 @@ struct ControlIconButton: View {
 // MARK: - Media Options Sheet
 
 struct MediaOptionsSheet: View {
-    @ObservedObject var viewModel: VideoPlayerViewModel
+    @ObservedObject var viewModel: NowPlayingViewModel
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -368,6 +368,6 @@ struct MediaOptionSection: View {
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-        PlayerControlView(viewModel: VideoPlayerViewModel(videos: Video.sampleVideos))
+        PlayerControlView(viewModel: NowPlayingViewModel(videos: Video.sampleVideos))
     }
 }

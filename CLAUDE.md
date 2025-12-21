@@ -7,9 +7,9 @@ iOS HLS video player with playlist, PiP, remote control support.
 ```
 Views (SwiftUI)
     ↓
-ViewModel (VideoPlayerViewModel)
+ViewModel (NowPlayingViewModel)
     ↓
-Managers (Business Logic)
+Interactors (Business Logic)
     ↓
 Services (Protocols + Implementations)
 ```
@@ -20,15 +20,16 @@ Services (Protocols + Implementations)
 VideoPlayer/
 ├── Views/                  # SwiftUI views
 │   ├── LandingView.swift
+│   ├── NowPlayingView.swift
 │   ├── PlayerView.swift
 │   ├── PlayerControlView.swift
 │   └── PlaylistView.swift
 ├── ViewModels/
-│   └── VideoPlayerViewModel.swift   # Central coordinator
-├── Managers/
-│   ├── PlaybackManager.swift        # Playback control & playlist
-│   ├── MediaOptionsManager.swift    # Audio/subtitle selection
-│   └── RemoteControlManager.swift   # Lock screen & Control Center
+│   └── NowPlayingViewModel.swift   # Central coordinator
+├── Interactors/
+│   ├── PlaybackInteractor.swift        # Playback control & playlist
+│   ├── MediaOptionsInteractor.swift    # Audio/subtitle selection
+│   └── RemoteControlInteractor.swift   # Lock screen & Control Center
 ├── Services/
 │   ├── Protocols/
 │   │   ├── PlayerServiceProtocol.swift
@@ -61,8 +62,8 @@ VideoPlayer/
 ### Key Components
 
 - **PlayerService**: Wraps AVQueuePlayer with KVO observers
-- **VideoPlayerViewModel**: Coordinates all managers, exposes UI state
-- **Managers**: Bridge between ViewModel and Services
+- **NowPlayingViewModel**: Coordinates all interactors, exposes UI state
+- **Interactors**: Bridge between ViewModel and Services
 
 ---
 

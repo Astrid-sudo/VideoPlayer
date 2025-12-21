@@ -53,7 +53,7 @@ struct LandingView: View {
             .navigationDestination(for: NavigationDestination.self) { destination in
                 switch destination {
                 case .player:
-                    ContentView()
+                    NowPlayingView()
                 }
             }
         }

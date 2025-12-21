@@ -1,5 +1,5 @@
 //
-//  PlaybackManager.swift
+//  PlaybackInteractor.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -10,7 +10,7 @@ import Combine
 
 /// 播放控制與播放列表業務邏輯
 /// 依賴 PlayerServiceProtocol、AudioSessionServiceProtocol
-final class PlaybackManager {
+final class PlaybackInteractor {
 
     // MARK: - Dependencies
 

@@ -1,5 +1,5 @@
 //
-//  VideoPlayerViewModelTests.swift
+//  NowPlayingViewModelTests.swift
 //  VideoPlayerTests
 //
 //  Created by Astrid Lin on 2025/12/21.
@@ -11,12 +11,12 @@ import Foundation
 @testable import VideoPlayer
 
 @MainActor
-struct VideoPlayerViewModelTests {
+struct NowPlayingViewModelTests {
 
     // MARK: - Helper
 
     private func makeSUT() -> (
-        sut: VideoPlayerViewModel,
+        sut: NowPlayingViewModel,
         mockPlayer: MockPlayerService,
         mockRemote: MockRemoteControlService,
         mockNetwork: MockNetworkMonitor
@@ -32,7 +32,7 @@ struct VideoPlayerViewModelTests {
             Video(title: "Video 3", url: "https://example.com/3.m3u8", description: "Desc 3")
         ]
 
-        let sut = VideoPlayerViewModel(
+        let sut = NowPlayingViewModel(
             playerService: mockPlayerService,
             layerConnector: mockPlayerService,
             audioSessionService: mockAudioSessionService,
@@ -244,7 +244,7 @@ struct VideoPlayerViewModelTests {
 
     // MARK: - Time Display Tests
 
-    @Test func currentTimeUpdatesFromPlaybackManager() async throws {
+    @Test func currentTimeUpdatesFromPlaybackInteractor() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.timeSubject.send(65) // 1:05
@@ -253,7 +253,7 @@ struct VideoPlayerViewModelTests {
         #expect(sut.currentTime == "01:05 /")
     }
 
-    @Test func durationUpdatesFromPlaybackManager() async throws {
+    @Test func durationUpdatesFromPlaybackInteractor() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.durationSubject.send(3661) // 1:01:01

@@ -39,21 +39,21 @@ Please develop an app that can play a video from the Internet with custom UI and
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        Views (SwiftUI)                       │
-│  LandingView, ContentView, PlayerView, PlayerControlView,   │
+│  LandingView, NowPlayingView, PlayerView, PlayerControlView, │
 │  PlaylistView, PlaylistItemView                              │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    VideoPlayerViewModel                      │
-│              Coordinates UI state and Managers               │
+│                     NowPlayingViewModel                      │
+│             Coordinates UI state and Interactors             │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         Managers                             │
-│  PlaybackManager, PlaylistManager, MediaOptionsManager,     │
-│  RemoteControlManager                                        │
+│                        Interactors                           │
+│  PlaybackInteractor, MediaOptionsInteractor,                │
+│  RemoteControlInteractor                                     │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
@@ -88,16 +88,15 @@ VideoPlayer/
 │       ├── PlayerService.swift
 │       ├── AudioSessionService.swift
 │       └── RemoteControlService.swift
-├── Managers/
-│   ├── PlaybackManager.swift
-│   ├── PlaylistManager.swift
-│   ├── MediaOptionsManager.swift
-│   └── RemoteControlManager.swift
+├── Interactors/
+│   ├── PlaybackInteractor.swift
+│   ├── MediaOptionsInteractor.swift
+│   └── RemoteControlInteractor.swift
 ├── ViewModels/
-│   └── VideoPlayerViewModel.swift
+│   └── NowPlayingViewModel.swift
 ├── Views/
 │   ├── LandingView.swift
-│   ├── ContentView.swift
+│   ├── NowPlayingView.swift
 │   ├── PlayerView.swift
 │   ├── PlayerControlView.swift
 │   ├── PlaylistView.swift

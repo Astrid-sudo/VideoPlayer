@@ -1,5 +1,5 @@
 //
-//  PlaybackManagerTests.swift
+//  PlaybackInteractorTests.swift
 //  VideoPlayerTests
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -11,14 +11,14 @@ import Foundation
 @testable import VideoPlayer
 
 @MainActor
-struct PlaybackManagerTests {
+struct PlaybackInteractorTests {
 
     // MARK: - Helper
 
-    private func makeSUT(videos: [Video] = []) -> (sut: PlaybackManager, mockPlayer: MockPlayerService, mockAudio: MockAudioSessionService) {
+    private func makeSUT(videos: [Video] = []) -> (sut: PlaybackInteractor, mockPlayer: MockPlayerService, mockAudio: MockAudioSessionService) {
         let mockPlayerService = MockPlayerService()
         let mockAudioSessionService = MockAudioSessionService()
-        let sut = PlaybackManager(
+        let sut = PlaybackInteractor(
             playerService: mockPlayerService,
             audioSessionService: mockAudioSessionService,
             videos: videos
@@ -234,7 +234,7 @@ struct PlaybackManagerTests {
 
     // When a video ends in the middle of playlist, index should advance and rate should be maintained
     @Test func playbackDidEndAtMiddleVideoAdvancesIndexAndMaintainsRate() async throws {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         sut.setSpeed(1.5)
         sut.play()
@@ -277,13 +277,13 @@ struct PlaybackManagerTests {
     // MARK: - Playlist Tests
 
     @Test func initSetsPlaylistOnPlayerService() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (_, mockPlayer, _) = makeSUT(videos: videos)
         #expect(mockPlayer.setPlaylistUrls?.count == 3)
     }
 
     @Test func playVideoAtSameIndexSeeksToZero() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
 
         sut.playVideo(at: 0)
@@ -293,7 +293,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playVideoAtNextIndexAdvancesToNextItem() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
 
         sut.playVideo(at: 1)
@@ -303,7 +303,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playVideoAtOtherIndexRebuildsQueue() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
 
         sut.playVideo(at: 2)
@@ -313,7 +313,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playVideoAtInvalidIndexDoesNothing() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         mockPlayer.reset()
 
@@ -324,7 +324,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playVideoAtNegativeIndexDoesNothing() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         mockPlayer.reset()
 
@@ -335,7 +335,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playNextVideoAdvancesToNextItem() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
 
         sut.playNextVideo()
@@ -345,7 +345,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playNextVideoAtLastIndexLoopsToFirst() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         sut.playVideo(at: 2)
         mockPlayer.reset()
@@ -357,7 +357,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playPreviousVideoGoesToPreviousIndex() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         sut.playVideo(at: 2)
         mockPlayer.reset()
@@ -368,7 +368,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func playPreviousVideoAtFirstIndexLoopsToLast() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, _, _) = makeSUT(videos: videos)
 
         sut.playPreviousVideo()
@@ -377,7 +377,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func updateVideoDurationUpdatesVideoAtIndex() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, _, _) = makeSUT(videos: videos)
 
         sut.updateVideoDuration(120.5, at: 1)
@@ -386,7 +386,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func updateVideoDurationAtInvalidIndexDoesNothing() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, _, _) = makeSUT(videos: videos)
 
         sut.updateVideoDuration(120.5, at: 10)
@@ -396,7 +396,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func reloadCurrentVideoRebuildsQueue() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, mockPlayer, _) = makeSUT(videos: videos)
         sut.playVideo(at: 1)
         mockPlayer.reset()
@@ -408,7 +408,7 @@ struct PlaybackManagerTests {
     }
 
     @Test func currentVideoReturnsCorrectVideo() {
-        let videos = PlaybackManagerTests.sampleVideos
+        let videos = PlaybackInteractorTests.sampleVideos
         let (sut, _, _) = makeSUT(videos: videos)
 
         sut.playVideo(at: 1)

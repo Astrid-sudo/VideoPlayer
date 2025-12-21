@@ -1,5 +1,5 @@
 //
-//  VideoPlayerViewModel.swift
+//  NowPlayingViewModel.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -11,7 +11,7 @@ import SwiftUI
 
 /// 影片播放器 ViewModel
 /// 協調 Managers，管理 UI 狀態
-final class VideoPlayerViewModel: ObservableObject {
+final class NowPlayingViewModel: ObservableObject {
 
     // MARK: - UI State (Published)
 
@@ -38,11 +38,11 @@ final class VideoPlayerViewModel: ObservableObject {
         return videos[currentVideoIndex]
     }
 
-    // MARK: - Managers
+    // MARK: - Interactors
 
-    private let playbackManager: PlaybackManager
-    private let mediaOptionsManager: MediaOptionsManager
-    private let remoteControlManager: RemoteControlManager
+    private let playbackInteractor: PlaybackInteractor
+    private let mediaOptionsInteractor: MediaOptionsInteractor
+    private let remoteControlInteractor: RemoteControlInteractor
 
     // MARK: - Layer Connection
 
@@ -71,18 +71,18 @@ final class VideoPlayerViewModel: ObservableObject {
         self.networkMonitor = networkMonitor
         self.videos = videos
 
-        // Create Managers
-        self.playbackManager = PlaybackManager(
+        // Create Interactors
+        self.playbackInteractor = PlaybackInteractor(
             playerService: playerService,
             audioSessionService: audioSessionService,
             videos: videos
         )
 
-        self.mediaOptionsManager = MediaOptionsManager(
+        self.mediaOptionsInteractor = MediaOptionsInteractor(
             playerService: playerService
         )
 
-        self.remoteControlManager = RemoteControlManager(
+        self.remoteControlInteractor = RemoteControlInteractor(
             remoteControlService: remoteControlService
         )
 
@@ -106,45 +106,45 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Playback Control
 
     func togglePlay() {
-        playbackManager.togglePlay()
+        playbackInteractor.togglePlay()
     }
 
     func playPlayer() {
-        playbackManager.play()
+        playbackInteractor.play()
     }
 
     func pausePlayer() {
-        playbackManager.pause()
+        playbackInteractor.pause()
     }
 
     func jumpToTime(_ jumpTimeType: JumpTimeType) {
         switch jumpTimeType {
         case .forward(let seconds):
-            playbackManager.skipForward(seconds)
+            playbackInteractor.skipForward(seconds)
         case .backward(let seconds):
-            playbackManager.skipBackward(seconds)
+            playbackInteractor.skipBackward(seconds)
         }
         updateNowPlayingInfo()
     }
 
     func slideToTime(_ sliderValue: Double) {
         let targetTime = durationSeconds * sliderValue
-        playbackManager.seek(to: targetTime)
+        playbackInteractor.seek(to: targetTime)
     }
 
     func sliderTouchEnded(_ sliderValue: Double) {
         if sliderValue >= 1.0 {
-            playbackManager.pause()
+            playbackInteractor.pause()
             return
         }
 
-        if playbackManager.bufferingState == .likelyToKeepUp {
-            playbackManager.play()
+        if playbackInteractor.bufferingState == .likelyToKeepUp {
+            playbackInteractor.play()
         }
     }
 
     func adjustSpeed(_ speedButtonType: SpeedButtonType) {
-        playbackManager.setSpeed(speedButtonType.speedRate)
+        playbackInteractor.setSpeed(speedButtonType.speedRate)
         playSpeedRate = speedButtonType.speedRate
         updateNowPlayingInfo()
     }
@@ -152,19 +152,19 @@ final class VideoPlayerViewModel: ObservableObject {
     // MARK: - Playlist Control
 
     func playVideo(at index: Int) {
-        playbackManager.playVideo(at: index)
+        playbackInteractor.playVideo(at: index)
         updateNowPlayingInfo()
     }
 
     func playNextVideo() {
-        playbackManager.playNextVideo()
+        playbackInteractor.playNextVideo()
         updateNowPlayingInfo()
     }
 
     // MARK: - Media Options
 
     func selectMediaOption(mediaOptionType: MediaOptionType, index: Int) {
-        mediaOptionsManager.selectOption(type: mediaOptionType, index: index)
+        mediaOptionsInteractor.selectOption(type: mediaOptionType, index: index)
     }
 
     // MARK: - Picture in Picture
@@ -189,9 +189,9 @@ final class VideoPlayerViewModel: ObservableObject {
     private func setupBindings() {
         // Combine itemStatus, bufferingState, isPlaying to determine playerState
         Publishers.CombineLatest3(
-            playbackManager.$itemStatus,
-            playbackManager.$bufferingState,
-            playbackManager.$isPlaying
+            playbackInteractor.$itemStatus,
+            playbackInteractor.$bufferingState,
+            playbackInteractor.$isPlaying
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] itemStatus, bufferingState, isPlaying in
@@ -199,7 +199,7 @@ final class VideoPlayerViewModel: ObservableObject {
         }
         .store(in: &cancellables)
 
-        playbackManager.$currentTime
+        playbackInteractor.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
                 self?.currentTime = TimeManager.floatToTimecodeString(seconds: Float(time)) + " /"
@@ -207,41 +207,41 @@ final class VideoPlayerViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        playbackManager.$duration
+        playbackInteractor.$duration
             .receive(on: DispatchQueue.main)
             .sink { [weak self] duration in
                 guard let self = self else { return }
                 self.durationSeconds = duration
                 self.duration = TimeManager.floatToTimecodeString(seconds: Float(duration))
-                self.playbackManager.updateVideoDuration(duration, at: self.currentVideoIndex)
+                self.playbackInteractor.updateVideoDuration(duration, at: self.currentVideoIndex)
             }
             .store(in: &cancellables)
 
-        // Playlist bindings (from PlaybackManager)
-        playbackManager.$currentIndex
+        // Playlist bindings (from PlaybackInteractor)
+        playbackInteractor.$currentIndex
             .receive(on: DispatchQueue.main)
             .sink { [weak self] index in
                 self?.currentVideoIndex = index
             }
             .store(in: &cancellables)
 
-        playbackManager.$videos
+        playbackInteractor.$videos
             .receive(on: DispatchQueue.main)
             .sink { [weak self] videos in
                 self?.videos = videos
             }
             .store(in: &cancellables)
 
-        // MediaOptionsManager bindings
-        mediaOptionsManager.$mediaOption
+        // MediaOptionsInteractor bindings
+        mediaOptionsInteractor.$mediaOption
             .receive(on: DispatchQueue.main)
             .assign(to: &$mediaOption)
 
-        mediaOptionsManager.$selectedAudioIndex
+        mediaOptionsInteractor.$selectedAudioIndex
             .receive(on: DispatchQueue.main)
             .assign(to: &$selectedAudioIndex)
 
-        mediaOptionsManager.$selectedSubtitleIndex
+        mediaOptionsInteractor.$selectedSubtitleIndex
             .receive(on: DispatchQueue.main)
             .assign(to: &$selectedSubtitleIndex)
 
@@ -260,19 +260,19 @@ final class VideoPlayerViewModel: ObservableObject {
     }
 
     private func setupRemoteControlCallbacks() {
-        remoteControlManager.onPlay = { [weak self] in self?.playPlayer() }
-        remoteControlManager.onPause = { [weak self] in self?.pausePlayer() }
-        remoteControlManager.onTogglePlayPause = { [weak self] in self?.togglePlay() }
-        remoteControlManager.onNextTrack = { [weak self] in self?.playNextVideo() }
-        remoteControlManager.onSkipForward = { [weak self] seconds in self?.jumpToTime(.forward(seconds)) }
-        remoteControlManager.onSkipBackward = { [weak self] seconds in self?.jumpToTime(.backward(seconds)) }
-        remoteControlManager.onSeekToPosition = { [weak self] position in
+        remoteControlInteractor.onPlay = { [weak self] in self?.playPlayer() }
+        remoteControlInteractor.onPause = { [weak self] in self?.pausePlayer() }
+        remoteControlInteractor.onTogglePlayPause = { [weak self] in self?.togglePlay() }
+        remoteControlInteractor.onNextTrack = { [weak self] in self?.playNextVideo() }
+        remoteControlInteractor.onSkipForward = { [weak self] seconds in self?.jumpToTime(.forward(seconds)) }
+        remoteControlInteractor.onSkipBackward = { [weak self] seconds in self?.jumpToTime(.backward(seconds)) }
+        remoteControlInteractor.onSeekToPosition = { [weak self] position in
             guard let self = self, self.durationSeconds > 0 else { return }
             let progress = position / self.durationSeconds
             self.slideToTime(progress)
         }
 
-        remoteControlManager.setupCommands()
+        remoteControlInteractor.setupCommands()
     }
 
     private func setupNetworkMonitoring() {
@@ -284,7 +284,7 @@ final class VideoPlayerViewModel: ObservableObject {
                 if case .failed(let error) = self.playerState,
                    let playerError = error as? PlayerError,
                    playerError.isNetworkError {
-                    self.playbackManager.reloadCurrentVideo()
+                    self.playbackInteractor.reloadCurrentVideo()
                 }
             }
             .store(in: &cancellables)
@@ -327,11 +327,11 @@ final class VideoPlayerViewModel: ObservableObject {
 
     private func updateNowPlayingInfo() {
         let isPlaying = playerState == .playing
-        remoteControlManager.updateNowPlayingInfo(
+        remoteControlInteractor.updateNowPlayingInfo(
             title: currentVideo?.title,
             artist: currentVideo?.description,
             duration: durationSeconds,
-            elapsedTime: playbackManager.currentTime,
+            elapsedTime: playbackInteractor.currentTime,
             playbackRate: isPlaying ? playSpeedRate : 0
         )
     }
