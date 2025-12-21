@@ -70,19 +70,19 @@ final class RemoteControlService: RemoteControlServiceProtocol {
             return .success
         }
 
-        // Skip Forward (15 seconds)
+        // Skip Forward
         commandCenter.skipForwardCommand.isEnabled = handlers.onSkipForward != nil
-        commandCenter.skipForwardCommand.preferredIntervals = [15]
+        commandCenter.skipForwardCommand.preferredIntervals = [PlayerConstants.skipInterval]
         commandCenter.skipForwardCommand.addTarget { [weak self] _ in
-            self?.handlers?.onSkipForward?(15)
+            self?.handlers?.onSkipForward?(PlayerConstants.skipInterval.doubleValue)
             return .success
         }
 
-        // Skip Backward (15 seconds)
+        // Skip Backward
         commandCenter.skipBackwardCommand.isEnabled = handlers.onSkipBackward != nil
-        commandCenter.skipBackwardCommand.preferredIntervals = [15]
+        commandCenter.skipBackwardCommand.preferredIntervals = [PlayerConstants.skipInterval]
         commandCenter.skipBackwardCommand.addTarget { [weak self] _ in
-            self?.handlers?.onSkipBackward?(15)
+            self?.handlers?.onSkipBackward?(PlayerConstants.skipInterval.doubleValue)
             return .success
         }
 

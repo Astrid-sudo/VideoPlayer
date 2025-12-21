@@ -187,7 +187,7 @@ struct NowPlayingView: View {
 
         // Schedule new task to hide controls after 5 seconds
         hideControlsTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+            try? await Task.sleep(nanoseconds: PlayerConstants.controlsAutoHideDelay)
             guard !Task.isCancelled else { return }
             showControls = false
         }

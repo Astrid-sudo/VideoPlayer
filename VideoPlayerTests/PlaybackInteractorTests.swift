@@ -52,7 +52,7 @@ struct PlaybackInteractorTests {
         let (sut, mockPlayer, _) = makeSUT()
         sut.play()
         try await Task.sleep(for: .milliseconds(50))
-        #expect(mockPlayer.startTimeObservationInterval == 0.5)
+        #expect(mockPlayer.startTimeObservationInterval == PlayerConstants.timeObservationInterval)
     }
 
     @Test func playSetsCorrectRate() {
@@ -258,7 +258,7 @@ struct PlaybackInteractorTests {
         try await Task.sleep(for: .milliseconds(50))
 
         #expect(sut.isPlaying == true)
-        #expect(mockPlayer.startTimeObservationInterval == 0.5)
+        #expect(mockPlayer.startTimeObservationInterval == PlayerConstants.timeObservationInterval)
     }
 
     // When external control (e.g., PiP) pauses playback, time observation should stop

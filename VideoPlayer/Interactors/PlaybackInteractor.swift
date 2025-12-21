@@ -240,7 +240,7 @@ final class PlaybackInteractor {
 
         // 同步時間觀察器狀態
         if isPlaying {
-            playerService.startTimeObservation(interval: 0.5)
+            playerService.startTimeObservation(interval: PlayerConstants.timeObservationInterval)
         } else {
             playerService.stopTimeObservation()
         }
