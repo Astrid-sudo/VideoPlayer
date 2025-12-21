@@ -30,7 +30,7 @@ struct LandingView: View {
                     } label: {
                         HStack {
                             Image(systemName: "play.fill")
-                            Text("Go to Playlist")
+                            Text("navigation.goToPlaylist", tableName: "Localizable")
                         }
                         .font(.headline)
                         .foregroundColor(.blue)

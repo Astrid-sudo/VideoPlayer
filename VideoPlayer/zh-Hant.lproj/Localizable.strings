@@ -1,0 +1,31 @@
+/*
+  Localizable.strings (Traditional Chinese)
+  VideoPlayer
+*/
+
+// MARK: - Navigation
+"navigation.goToPlaylist" = "前往播放清單";
+"navigation.playlist" = "播放清單";
+
+// MARK: - Playback Error Alert
+"alert.playbackError.title" = "播放錯誤";
+"alert.playbackError.message" = "此影片無法播放";
+"alert.playbackError.continueNext" = "繼續播放下一個影片";
+
+// MARK: - Network Error Alert
+"alert.networkError.title" = "網路連線異常";
+"alert.networkError.message" = "請檢查網路設定後重試";
+"alert.networkError.goToSettings" = "前往設定";
+
+// MARK: - Common
+"common.cancel" = "取消";
+"common.done" = "完成";
+
+// MARK: - Playback Speed
+"speed.title" = "播放速度";
+"speed.normal" = "1.0x (正常)";
+
+// MARK: - Media Options
+"mediaOptions.title" = "字幕與音訊";
+"mediaOptions.audio" = "音訊";
+"mediaOptions.subtitles" = "字幕";

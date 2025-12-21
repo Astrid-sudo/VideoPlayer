@@ -12,7 +12,7 @@ struct PlaylistView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Playlist")
+            Text("navigation.playlist", tableName: "Localizable")
                 .font(.title2)
                 .fontWeight(.bold)
                 .padding(.horizontal)

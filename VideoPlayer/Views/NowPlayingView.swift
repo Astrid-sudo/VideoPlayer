@@ -100,20 +100,20 @@ struct NowPlayingView: View {
         .onDisappear {
             cancelHideControls()
         }
-        .alert("播放錯誤", isPresented: $showPlaybackErrorAlert) {
-            Button("繼續播放下一個影片") {
+        .alert(Text("alert.playbackError.title", tableName: "Localizable"), isPresented: $showPlaybackErrorAlert) {
+            Button(String(localized: "alert.playbackError.continueNext", table: "Localizable")) {
                 viewModel.playNextVideo()
             }
         } message: {
-            Text("此影片無法播放")
+            Text("alert.playbackError.message", tableName: "Localizable")
         }
-        .alert("網路連線異常", isPresented: $showNetworkErrorAlert) {
-            Button("前往設定") {
+        .alert(Text("alert.networkError.title", tableName: "Localizable"), isPresented: $showNetworkErrorAlert) {
+            Button(String(localized: "alert.networkError.goToSettings", table: "Localizable")) {
                 URLOpener.openSettings()
             }
-            Button("取消", role: .cancel) { }
+            Button(String(localized: "common.cancel", table: "Localizable"), role: .cancel) { }
         } message: {
-            Text("請檢查網路設定後重試")
+            Text("alert.networkError.message", tableName: "Localizable")
         }
     }
 

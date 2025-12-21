@@ -1,0 +1,31 @@
+/*
+  Localizable.strings (English)
+  VideoPlayer
+*/
+
+// MARK: - Navigation
+"navigation.goToPlaylist" = "Go to Playlist";
+"navigation.playlist" = "Playlist";
+
+// MARK: - Playback Error Alert
+"alert.playbackError.title" = "Playback Error";
+"alert.playbackError.message" = "This video cannot be played";
+"alert.playbackError.continueNext" = "Continue to Next Video";
+
+// MARK: - Network Error Alert
+"alert.networkError.title" = "Network Error";
+"alert.networkError.message" = "Please check network settings and try again";
+"alert.networkError.goToSettings" = "Go to Settings";
+
+// MARK: - Common
+"common.cancel" = "Cancel";
+"common.done" = "Done";
+
+// MARK: - Playback Speed
+"speed.title" = "Playback Speed";
+"speed.normal" = "1.0x (Normal)";
+
+// MARK: - Media Options
+"mediaOptions.title" = "Subtitles & Audio";
+"mediaOptions.audio" = "Audio";
+"mediaOptions.subtitles" = "Subtitles";
