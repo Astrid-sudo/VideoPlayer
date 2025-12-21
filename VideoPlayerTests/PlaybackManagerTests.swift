@@ -369,7 +369,7 @@ struct PlaybackManagerTests {
 
     @Test func playPreviousVideoAtFirstIndexLoopsToLast() {
         let videos = PlaybackManagerTests.sampleVideos
-        let (sut, mockPlayer, _) = makeSUT(videos: videos)
+        let (sut, _, _) = makeSUT(videos: videos)
 
         sut.playPreviousVideo()
 

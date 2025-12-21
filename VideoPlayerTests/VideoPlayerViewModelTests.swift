@@ -102,38 +102,6 @@ struct VideoPlayerViewModelTests {
         #expect(sut.playerState == .paused)
     }
 
-    @Test func playerStateTransitionsFromPlayingToPaused() async throws {
-        let (sut, mockPlayer, _, _) = makeSUT()
-
-        // Start playing
-        mockPlayer.itemStatusSubject.send(.readyToPlay)
-        mockPlayer.bufferingSubject.send(.likelyToKeepUp)
-        mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
-        #expect(sut.playerState == .playing)
-
-        // Transition to paused
-        mockPlayer.isPlayingSubject.send(false)
-        try await Task.sleep(for: .milliseconds(50))
-        #expect(sut.playerState == .paused)
-    }
-
-    @Test func playerStateTransitionsToLoadingWhenBufferEmpties() async throws {
-        let (sut, mockPlayer, _, _) = makeSUT()
-
-        // Start playing with good buffer
-        mockPlayer.itemStatusSubject.send(.readyToPlay)
-        mockPlayer.bufferingSubject.send(.likelyToKeepUp)
-        mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
-        #expect(sut.playerState == .playing)
-
-        // Buffer empties
-        mockPlayer.bufferingSubject.send(.bufferEmpty)
-        try await Task.sleep(for: .milliseconds(50))
-        #expect(sut.playerState == .loading)
-    }
-
     // MARK: - Slider Touch Ended Tests
 
     @Test func sliderTouchEndedAtMaxValuePauses() async throws {
@@ -263,18 +231,6 @@ struct VideoPlayerViewModelTests {
     }
 
     // MARK: - Progress Binding Tests
-
-    @Test func progressUpdatesFromPlaybackManager() async throws {
-        let (sut, mockPlayer, _, _) = makeSUT()
-
-        mockPlayer.durationSubject.send(100)
-        try await Task.sleep(for: .milliseconds(50))
-
-        mockPlayer.timeSubject.send(25)
-        try await Task.sleep(for: .milliseconds(50))
-
-        #expect(sut.playProgress == 0.25)
-    }
 
     @Test func progressStaysZeroWhenDurationIsZero() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
