@@ -244,7 +244,7 @@ struct NowPlayingViewModelTests {
 
     // MARK: - Time Display Tests
 
-    @Test func currentTimeUpdatesFromPlaybackManager() async throws {
+    @Test func currentTimeUpdatesFromPlaybackInteractor() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.timeSubject.send(65) // 1:05
@@ -253,7 +253,7 @@ struct NowPlayingViewModelTests {
         #expect(sut.currentTime == "01:05 /")
     }
 
-    @Test func durationUpdatesFromPlaybackManager() async throws {
+    @Test func durationUpdatesFromPlaybackInteractor() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.durationSubject.send(3661) // 1:01:01

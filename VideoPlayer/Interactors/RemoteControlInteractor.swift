@@ -1,5 +1,5 @@
 //
-//  RemoteControlManager.swift
+//  RemoteControlInteractor.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -9,7 +9,7 @@ import Foundation
 
 /// 遠程控制業務邏輯
 /// 依賴 RemoteControlServiceProtocol，不依賴 UIKit
-final class RemoteControlManager {
+final class RemoteControlInteractor {
 
     // MARK: - Dependencies
 

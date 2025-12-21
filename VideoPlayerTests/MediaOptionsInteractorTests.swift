@@ -1,5 +1,5 @@
 //
-//  MediaOptionsManagerTests.swift
+//  MediaOptionsInteractorTests.swift
 //  VideoPlayerTests
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -11,13 +11,13 @@ import Foundation
 @testable import VideoPlayer
 
 @MainActor
-struct MediaOptionsManagerTests {
+struct MediaOptionsInteractorTests {
 
     // MARK: - Helper
 
-    private func makeSUT() -> (sut: MediaOptionsManager, mockPlayer: MockPlayerService) {
+    private func makeSUT() -> (sut: MediaOptionsInteractor, mockPlayer: MockPlayerService) {
         let mockPlayerService = MockPlayerService()
-        let sut = MediaOptionsManager(playerService: mockPlayerService)
+        let sut = MediaOptionsInteractor(playerService: mockPlayerService)
         return (sut, mockPlayerService)
     }
 

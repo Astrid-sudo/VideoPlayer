@@ -1,5 +1,5 @@
 //
-//  MediaOptionsManager.swift
+//  MediaOptionsInteractor.swift
 //  VideoPlayer
 //
 //  Created by Astrid Lin on 2025/12/18.
@@ -10,7 +10,7 @@ import Combine
 
 /// 媒體選項（字幕/音軌）業務邏輯
 /// 依賴 PlayerServiceProtocol，不直接依賴 AVFoundation
-final class MediaOptionsManager {
+final class MediaOptionsInteractor {
 
     // MARK: - Dependencies
 

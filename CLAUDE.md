@@ -9,7 +9,7 @@ Views (SwiftUI)
     ↓
 ViewModel (NowPlayingViewModel)
     ↓
-Managers (Business Logic)
+Interactors (Business Logic)
     ↓
 Services (Protocols + Implementations)
 ```
@@ -26,10 +26,10 @@ VideoPlayer/
 │   └── PlaylistView.swift
 ├── ViewModels/
 │   └── NowPlayingViewModel.swift   # Central coordinator
-├── Managers/
-│   ├── PlaybackManager.swift        # Playback control & playlist
-│   ├── MediaOptionsManager.swift    # Audio/subtitle selection
-│   └── RemoteControlManager.swift   # Lock screen & Control Center
+├── Interactors/
+│   ├── PlaybackInteractor.swift        # Playback control & playlist
+│   ├── MediaOptionsInteractor.swift    # Audio/subtitle selection
+│   └── RemoteControlInteractor.swift   # Lock screen & Control Center
 ├── Services/
 │   ├── Protocols/
 │   │   ├── PlayerServiceProtocol.swift
@@ -62,8 +62,8 @@ VideoPlayer/
 ### Key Components
 
 - **PlayerService**: Wraps AVQueuePlayer with KVO observers
-- **NowPlayingViewModel**: Coordinates all managers, exposes UI state
-- **Managers**: Bridge between ViewModel and Services
+- **NowPlayingViewModel**: Coordinates all interactors, exposes UI state
+- **Interactors**: Bridge between ViewModel and Services
 
 ---
 
