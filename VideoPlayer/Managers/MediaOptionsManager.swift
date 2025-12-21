@@ -53,6 +53,9 @@ final class MediaOptionsManager {
 
         guard index >= 0 && index < options.count else { return }
 
+        let optionName = options[index].displayName
+        AppLogger.mediaOptions.info("Selected \(type == .audio ? "audio" : "subtitle"): \(optionName)")
+
         let locale = options[index].locale
         playerService.selectMediaOption(type: selectionType, locale: locale)
 
