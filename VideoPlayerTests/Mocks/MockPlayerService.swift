@@ -41,12 +41,17 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Subjects (發送事件)
 
+    // Event stream
     let timeSubject = PassthroughSubject<TimeInterval, Never>()
-    let durationSubject = PassthroughSubject<TimeInterval, Never>()
-    let itemStatusSubject = PassthroughSubject<PlaybackItemStatus, Never>()
-    let bufferingSubject = PassthroughSubject<BufferingState, Never>()
+
+    // State subjects
+    let durationSubject = CurrentValueSubject<TimeInterval, Never>(0)
+    let itemStatusSubject = CurrentValueSubject<PlaybackItemStatus, Never>(.unknown)
+    let bufferingSubject = CurrentValueSubject<BufferingState, Never>(.likelyToKeepUp)
+    let isPlayingSubject = CurrentValueSubject<Bool, Never>(false)
+
+    // One-time events
     let playbackDidEndSubject = PassthroughSubject<Void, Never>()
-    let isPlayingSubject = PassthroughSubject<Bool, Never>()
 
     // PiP Subjects
     let isPiPPossibleSubject = CurrentValueSubject<Bool, Never>(false)
