@@ -24,7 +24,7 @@ struct PlayerView: UIViewRepresentable {
 
 // MARK: - PlayerUIView
 
-class PlayerUIView: UIView {
+final class PlayerUIView: UIView {
 
     // Override the property to make AVPlayerLayer the view's backing layer
     override class var layerClass: AnyClass {

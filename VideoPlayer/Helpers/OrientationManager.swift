@@ -20,7 +20,7 @@ import Combine
 ///
 /// Note: `isLandscape` reflects the physical device orientation, not the interface orientation.
 /// The interface may be locked to portrait while `isLandscape` is true.
-class OrientationManager: ObservableObject {
+final class OrientationManager: ObservableObject {
     @Published var orientation: UIDeviceOrientation = .portrait
     @Published var isLandscape: Bool = false
 
