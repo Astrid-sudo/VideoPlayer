@@ -249,41 +249,53 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Media Options
 
-    func getMediaOptions() -> MediaSelectionOptions? {
+    func getMediaOptions() async -> MediaSelectionOptions? {
         guard let currentItem = player?.currentItem else { return nil }
 
         var audioOptions = [MediaSelectionOption]()
         var subtitleOptions = [MediaSelectionOption]()
 
-        for characteristic in currentItem.asset.availableMediaCharacteristicsWithMediaSelectionOptions {
-            if characteristic == .audible,
-               let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) {
-                audioOptions = group.options.map { option in
-                    MediaSelectionOption(displayName: option.displayName, locale: option.locale)
+        do {
+            let characteristics = try await currentItem.asset.load(.availableMediaCharacteristicsWithMediaSelectionOptions)
+
+            for characteristic in characteristics {
+                if characteristic == .audible,
+                   let group = try await currentItem.asset.loadMediaSelectionGroup(for: .audible) {
+                    audioOptions = group.options.map { option in
+                        MediaSelectionOption(displayName: option.displayName, locale: option.locale)
+                    }
+                }
+                if characteristic == .legible,
+                   let group = try await currentItem.asset.loadMediaSelectionGroup(for: .legible) {
+                    subtitleOptions = group.options.map { option in
+                        MediaSelectionOption(displayName: option.displayName, locale: option.locale)
+                    }
                 }
             }
-            if characteristic == .legible,
-               let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) {
-                subtitleOptions = group.options.map { option in
-                    MediaSelectionOption(displayName: option.displayName, locale: option.locale)
-                }
-            }
+        } catch {
+            AppLogger.player.error("Failed to load media options: \(error.localizedDescription)")
+            return nil
         }
 
         return MediaSelectionOptions(audioOptions: audioOptions, subtitleOptions: subtitleOptions)
     }
 
-    func selectMediaOption(type: MediaSelectionType, locale: Any?) {
+    func selectMediaOption(type: MediaSelectionType, locale: Any?) async {
         guard let currentItem = player?.currentItem else { return }
 
         let characteristic: AVMediaCharacteristic = (type == .audio) ? .audible : .legible
-        guard let group = currentItem.asset.mediaSelectionGroup(forMediaCharacteristic: characteristic) else { return }
 
-        if let locale = locale as? Locale {
-            let options = AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
-            if let option = options.first {
-                currentItem.select(option, in: group)
+        do {
+            guard let group = try await currentItem.asset.loadMediaSelectionGroup(for: characteristic) else { return }
+
+            if let locale = locale as? Locale {
+                let options = AVMediaSelectionGroup.mediaSelectionOptions(from: group.options, with: locale)
+                if let option = options.first {
+                    currentItem.select(option, in: group)
+                }
             }
+        } catch {
+            AppLogger.player.error("Failed to select media option: \(error.localizedDescription)")
         }
     }
 

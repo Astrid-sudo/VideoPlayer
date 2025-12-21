@@ -164,12 +164,12 @@ final class MockPlayerService: PlayerServiceProtocol, PlayerLayerConnectable {
         stopTimeObservationCallCount += 1
     }
 
-    func getMediaOptions() -> MediaSelectionOptions? {
+    func getMediaOptions() async -> MediaSelectionOptions? {
         getMediaOptionsCallCount += 1
         return stubbedMediaOptions
     }
 
-    func selectMediaOption(type: MediaSelectionType, locale: Any?) {
+    func selectMediaOption(type: MediaSelectionType, locale: Any?) async {
         selectMediaOptionType = type
         selectMediaOptionLocale = locale
     }

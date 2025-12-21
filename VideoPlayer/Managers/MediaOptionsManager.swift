@@ -57,7 +57,9 @@ final class MediaOptionsManager {
         AppLogger.mediaOptions.info("Selected \(type == .audio ? "audio" : "subtitle"): \(optionName)")
 
         let locale = options[index].locale
-        playerService.selectMediaOption(type: selectionType, locale: locale)
+        Task {
+            await playerService.selectMediaOption(type: selectionType, locale: locale)
+        }
 
         switch type {
         case .audio:
@@ -86,26 +88,32 @@ final class MediaOptionsManager {
     }
 
     private func loadMediaOptions() {
-        guard let options = playerService.getMediaOptions() else {
-            mediaOption = nil
-            return
+        Task {
+            guard let options = await playerService.getMediaOptions() else {
+                await MainActor.run {
+                    mediaOption = nil
+                }
+                return
+            }
+
+            let audibleOptions = options.audioOptions.map { option in
+                DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
+            }
+
+            let legibleOptions = options.subtitleOptions.map { option in
+                DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
+            }
+
+            await MainActor.run {
+                mediaOption = MediaOption(
+                    avMediaCharacteristicAudible: audibleOptions,
+                    avMediaCharacteristicLegible: legibleOptions
+                )
+
+                // 重置選擇
+                selectedAudioIndex = nil
+                selectedSubtitleIndex = nil
+            }
         }
-
-        let audibleOptions = options.audioOptions.map { option in
-            DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
-        }
-
-        let legibleOptions = options.subtitleOptions.map { option in
-            DisplayNameLocale(displayName: option.displayName, locale: option.locale as? Locale)
-        }
-
-        mediaOption = MediaOption(
-            avMediaCharacteristicAudible: audibleOptions,
-            avMediaCharacteristicLegible: legibleOptions
-        )
-
-        // 重置選擇
-        selectedAudioIndex = nil
-        selectedSubtitleIndex = nil
     }
 }
