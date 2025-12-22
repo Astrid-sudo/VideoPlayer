@@ -13,6 +13,8 @@ struct PlayerControlView: View {
     @ObservedObject var viewModel: NowPlayingViewModel
     @State private var showSpeedMenu = false
     @State private var showMediaOptionsSheet = false
+    @GestureState private var isDraggingSeekBar = false
+    @State private var draggingProgress: Double?
     var isFullscreen: Bool = false
     var onUserInteraction: (() -> Void)?
     var onFullscreenTap: (() -> Void)?
@@ -173,39 +175,83 @@ struct PlayerControlView: View {
 
     private var progressBar: some View {
         GeometryReader { geometry in
+            let knobSize: CGFloat = isDraggingSeekBar ? 24 : 12
+            let trackHeight: CGFloat = isDraggingSeekBar ? 8 : 4
+            let progress = min(max(0, draggingProgress ?? viewModel.playProgress), 1)
+            let trackWidth = geometry.size.width
+            let knobRadius = knobSize / 2
+            // Clamp knob position to keep it within bounds
+            let knobCenterX = knobRadius + progress * (trackWidth - knobSize)
+            let progressWidth = max(0, min(knobCenterX, trackWidth))
+
             ZStack(alignment: .leading) {
                 // Background track
                 Rectangle()
                     .fill(Color.white.opacity(0.3))
-                    .frame(height: 4)
+                    .frame(height: trackHeight)
+                    .cornerRadius(trackHeight / 2)
 
                 // Progress track
                 Rectangle()
                     .fill(Color.white)
-                    .frame(width: CGFloat(viewModel.playProgress) * geometry.size.width, height: 4)
+                    .frame(width: progressWidth, height: trackHeight)
+                    .cornerRadius(trackHeight / 2)
+
+                // Knob
+                Circle()
+                    .fill(Color.purple)
+                    .frame(width: knobSize, height: knobSize)
+                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+                    .position(x: knobCenterX, y: geometry.size.height / 2)
             }
-            .cornerRadius(2)
+            .frame(height: geometry.size.height)
+            .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
+                    .updating($isDraggingSeekBar) { _, state, _ in
+                        state = true
+                    }
                     .onChanged { value in
+                        guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                        viewModel.slideToTime(Double(progress))
+                        draggingProgress = progress
+                        viewModel.slideToTime(progress)
                         onUserInteraction?()
                     }
                     .onEnded { value in
+                        guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                        viewModel.sliderTouchEnded(Double(progress))
+                        draggingProgress = progress
+                        viewModel.sliderTouchEnded(progress)
                         onUserInteraction?()
                     }
             )
+            .onChange(of: viewModel.playProgress) { _, newProgress in
+                // Clear dragging state when playback catches up
+                if let target = draggingProgress,
+                   abs(newProgress - target) < 0.01 {
+                    draggingProgress = nil
+                }
+            }
+            .onChange(of: viewModel.currentVideoIndex) { _, _ in
+                // Reset seek state when video changes
+                draggingProgress = nil
+            }
         }
-        .frame(height: 20)
+        .frame(height: 24)
     }
 
     // MARK: - Time Display
 
+    private var displayedCurrentTime: String {
+        if let progress = draggingProgress {
+            return viewModel.timeString(for: progress)
+        }
+        return viewModel.currentTime
+    }
+
     private var timeDisplay: some View {
-        Text("\(viewModel.currentTime) \(viewModel.duration)")
+        Text("\(displayedCurrentTime) \(viewModel.duration)")
             .font(.caption)
             .foregroundColor(.white)
     }

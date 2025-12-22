@@ -11,65 +11,65 @@ import CoreMedia
 
 struct TimeManagerTests {
 
-    // MARK: - floatToTimecodeString Tests
+    // MARK: - timecodeString Tests
 
-    @Test func floatToTimecodeString_zeroSeconds_returnsZeroZero() {
-        let result = TimeManager.floatToTimecodeString(seconds: 0)
+    @Test func timecodeString_zeroSeconds_returnsZeroZero() {
+        let result = TimeManager.timecodeString(from: 0)
         #expect(result == "00:00")
     }
 
-    @Test func floatToTimecodeString_lessThanMinute_formatsCorrectly() {
-        let result = TimeManager.floatToTimecodeString(seconds: 45)
+    @Test func timecodeString_lessThanMinute_formatsCorrectly() {
+        let result = TimeManager.timecodeString(from: 45)
         #expect(result == "00:45")
     }
 
-    @Test func floatToTimecodeString_exactMinute_formatsCorrectly() {
-        let result = TimeManager.floatToTimecodeString(seconds: 60)
+    @Test func timecodeString_exactMinute_formatsCorrectly() {
+        let result = TimeManager.timecodeString(from: 60)
         #expect(result == "01:00")
     }
 
-    @Test func floatToTimecodeString_minutesAndSeconds_formatsCorrectly() {
-        let result = TimeManager.floatToTimecodeString(seconds: 125)
+    @Test func timecodeString_minutesAndSeconds_formatsCorrectly() {
+        let result = TimeManager.timecodeString(from: 125)
         #expect(result == "02:05")
     }
 
-    @Test func floatToTimecodeString_lessThanHour_showsMinutesAndSeconds() {
-        let result = TimeManager.floatToTimecodeString(seconds: 3599)
+    @Test func timecodeString_lessThanHour_showsMinutesAndSeconds() {
+        let result = TimeManager.timecodeString(from: 3599)
         #expect(result == "59:59")
     }
 
-    @Test func floatToTimecodeString_exactHour_showsHoursFormat() {
-        let result = TimeManager.floatToTimecodeString(seconds: 3600)
+    @Test func timecodeString_exactHour_showsHoursFormat() {
+        let result = TimeManager.timecodeString(from: 3600)
         #expect(result == "01:00:00")
     }
 
-    @Test func floatToTimecodeString_hoursMinutesSeconds_formatsCorrectly() {
-        let result = TimeManager.floatToTimecodeString(seconds: 3661)
+    @Test func timecodeString_hoursMinutesSeconds_formatsCorrectly() {
+        let result = TimeManager.timecodeString(from: 3661)
         #expect(result == "01:01:01")
     }
 
-    @Test func floatToTimecodeString_multipleHours_formatsCorrectly() {
-        let result = TimeManager.floatToTimecodeString(seconds: 7325)
+    @Test func timecodeString_multipleHours_formatsCorrectly() {
+        let result = TimeManager.timecodeString(from: 7325)
         #expect(result == "02:02:05")
     }
 
-    @Test func floatToTimecodeString_nan_returnsZeroZero() {
-        let result = TimeManager.floatToTimecodeString(seconds: Float.nan)
+    @Test func timecodeString_nan_returnsZeroZero() {
+        let result = TimeManager.timecodeString(from: Double.nan)
         #expect(result == "00:00")
     }
 
-    @Test func floatToTimecodeString_infinity_returnsZeroZero() {
-        let result = TimeManager.floatToTimecodeString(seconds: Float.infinity)
+    @Test func timecodeString_infinity_returnsZeroZero() {
+        let result = TimeManager.timecodeString(from: Double.infinity)
         #expect(result == "00:00")
     }
 
-    @Test func floatToTimecodeString_negativeInfinity_returnsZeroZero() {
-        let result = TimeManager.floatToTimecodeString(seconds: -Float.infinity)
+    @Test func timecodeString_negativeInfinity_returnsZeroZero() {
+        let result = TimeManager.timecodeString(from: -Double.infinity)
         #expect(result == "00:00")
     }
 
-    @Test func floatToTimecodeString_floatValue_floorsToInteger() {
-        let result = TimeManager.floatToTimecodeString(seconds: 65.9)
+    @Test func timecodeString_floatValue_floorsToInteger() {
+        let result = TimeManager.timecodeString(from: 65.9)
         #expect(result == "01:05")
     }
 
