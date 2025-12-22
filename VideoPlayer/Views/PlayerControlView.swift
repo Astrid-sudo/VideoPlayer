@@ -8,6 +8,7 @@
 import SwiftUI
 import AVKit
 
+/// Overlay view containing playback controls.
 struct PlayerControlView: View {
     @ObservedObject var viewModel: NowPlayingViewModel
     @State private var showSpeedMenu = false
@@ -272,6 +273,7 @@ struct PlayerControlView: View {
 
 // MARK: - Control Icon Button
 
+/// Reusable icon button for player controls.
 struct ControlIconButton: View {
     let iconName: String
     let action: () -> Void
@@ -287,6 +289,7 @@ struct ControlIconButton: View {
 
 // MARK: - Media Options Sheet
 
+/// Sheet for selecting audio tracks and subtitles.
 struct MediaOptionsSheet: View {
     @ObservedObject var viewModel: NowPlayingViewModel
     @Environment(\.dismiss) var dismiss
@@ -335,6 +338,7 @@ struct MediaOptionsSheet: View {
 
 // MARK: - Media Option Section
 
+/// Section displaying selectable media options.
 struct MediaOptionSection: View {
     let title: String
     let options: [DisplayNameLocale]

@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 播放器錯誤類型
+/// Player error types for playback and network issues.
 enum PlayerError: LocalizedError {
     case playbackFailed
     case networkUnavailable      // -1009: No internet connection

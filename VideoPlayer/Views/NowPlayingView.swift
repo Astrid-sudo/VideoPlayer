@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+/// Main video player view with controls and playlist.
 struct NowPlayingView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = NowPlayingViewModel(videos: Video.sampleVideos)

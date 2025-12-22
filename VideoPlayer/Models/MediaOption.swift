@@ -9,19 +9,19 @@ import Foundation
 
 // MARK: - Media Selection Types
 
-/// 媒體選項類型（純 Swift，不依賴 AVFoundation）
+/// Media option type for UI selection.
 enum MediaOptionType {
     case audio
     case subtitle
 }
 
-/// 顯示名稱與語系資訊
+/// Display name with optional locale info.
 struct DisplayNameLocale {
     let displayName: String
     let locale: Locale?
 }
 
-/// 媒體選項集合
+/// Collection of available audio and subtitle options.
 struct MediaOption {
     let avMediaCharacteristicAudible: [DisplayNameLocale]
     let avMediaCharacteristicLegible: [DisplayNameLocale]

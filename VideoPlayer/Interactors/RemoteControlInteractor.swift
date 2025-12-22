@@ -7,8 +7,7 @@
 
 import Foundation
 
-/// 遠程控制業務邏輯
-/// 依賴 RemoteControlServiceProtocol，不依賴 UIKit
+/// Handles remote control commands for lock screen and Control Center.
 final class RemoteControlInteractor {
 
     // MARK: - Dependencies
@@ -34,7 +33,7 @@ final class RemoteControlInteractor {
 
     // MARK: - Public Methods
 
-    /// 設定遠程控制命令
+    /// Configures remote control command handlers.
     func setupCommands() {
         let handlers = RemoteCommandHandlers(
             onPlay: { [weak self] in
@@ -74,7 +73,7 @@ final class RemoteControlInteractor {
         remoteControlService.setupCommands(handlers: handlers)
     }
 
-    /// 更新 Now Playing 資訊
+    /// Updates Now Playing info displayed on lock screen.
     func updateNowPlayingInfo(
         title: String?,
         artist: String?,
@@ -89,13 +88,13 @@ final class RemoteControlInteractor {
             elapsedTime: elapsedTime,
             playbackRate: playbackRate,
             artwork: nil,
-            usePlaceholderArtwork: true  // 讓 Service 生成預設 Artwork
+            usePlaceholderArtwork: true  // Let Service generate placeholder artwork
         )
 
         remoteControlService.updateNowPlayingInfo(info)
     }
 
-    /// 清除 Now Playing 資訊
+    /// Clears Now Playing info from lock screen.
     func clearNowPlayingInfo() {
         remoteControlService.clearNowPlayingInfo()
     }

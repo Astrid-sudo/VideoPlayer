@@ -9,8 +9,7 @@ import AVFoundation
 import AVKit
 import Combine
 
-/// 播放器服務實作
-/// 封裝 AVQueuePlayer，依賴 AVFoundation（最外層）
+/// Wraps AVQueuePlayer with KVO observers for playback state management.
 final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectable {
 
     // MARK: - Private Properties
@@ -94,6 +93,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Player Connection
 
+    /// Connects player to AVPlayerLayer and sets up PiP.
     func connect(layer: AVPlayerLayer) {
         // Defer player connection to avoid blocking navigation animation
         DispatchQueue.main.async { [weak self] in
@@ -104,18 +104,21 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Protocol Properties
 
+    /// Duration of current item in seconds.
     var currentItemDuration: TimeInterval? {
         guard let duration = player?.currentItem?.duration,
               duration.isNumeric else { return nil }
         return CMTimeGetSeconds(duration)
     }
 
+    /// Current playback time in seconds.
     var currentItemCurrentTime: TimeInterval? {
         guard let time = player?.currentItem?.currentTime(),
               time.isNumeric else { return nil }
         return CMTimeGetSeconds(time)
     }
 
+    /// Current playback rate.
     var currentRate: Float {
         player?.rate ?? 0
     }
@@ -132,18 +135,21 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Picture in Picture
 
+    /// Starts Picture in Picture if available.
     func startPictureInPicture() {
         guard let pipController = pipController,
               pipController.isPictureInPicturePossible else { return }
         pipController.startPictureInPicture()
     }
 
+    /// Stops Picture in Picture if active.
     func stopPictureInPicture() {
         guard let pipController = pipController,
               pipController.isPictureInPictureActive else { return }
         pipController.stopPictureInPicture()
     }
 
+    /// Notifies that UI has been restored after PiP.
     func pictureInPictureUIRestored() {
         restoreUICompletionHandler?(true)
         restoreUICompletionHandler = nil
@@ -153,20 +159,20 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         guard AVPictureInPictureController.isPictureInPictureSupported() else { return }
         guard layer.player != nil else { return }
 
-        // 如果已經有 pipController 且綁定的是同一個 layer，則不需要重新設置
+        // Skip if pipController already exists and is bound to the same layer
         if let existingController = pipController,
            existingController.playerLayer === layer {
             return
         }
 
-        // 清除舊的 PiP controller 和觀察者
+        // Clear old PiP controller and observers
         clearPiPObservers()
 
         let controller = AVPictureInPictureController(playerLayer: layer)
         controller?.delegate = self
         pipController = controller
 
-        // 觀察 PiP 可用狀態
+        // Observe PiP availability
         pipPossibleObservation = controller?.observe(\.isPictureInPicturePossible, options: [.initial, .new]) { [weak self] controller, _ in
             AppLogger.player.debug("PiP possible: \(controller.isPictureInPicturePossible)")
             DispatchQueue.main.async {
@@ -177,25 +183,30 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Playback Control
 
+    /// Starts playback.
     func play() {
         player?.play()
     }
 
+    /// Pauses playback.
     func pause() {
         player?.pause()
     }
 
+    /// Seeks to the specified time in seconds.
     func seek(to seconds: TimeInterval) {
         let time = CMTime(seconds: seconds, preferredTimescale: 1)
         player?.seek(to: time)
     }
 
+    /// Sets playback rate.
     func setRate(_ rate: Float) {
         player?.rate = rate
     }
 
     // MARK: - Queue Management
 
+    /// Initializes player with playlist URLs.
     func setPlaylist(urls: [URL]) {
         let items = urls.map { AVPlayerItem(url: $0) }
         player = AVQueuePlayer(items: items)
@@ -204,12 +215,12 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         observeItemPlaybackState()
     }
 
-    /// 觀察 AVPlayer 的 rate 變化（用於同步 PiP 等外部控制的播放狀態）
+    /// Observes player rate changes to sync external controls like PiP.
     private func observePlayerRate() {
         rateObserver?.invalidate()
         rateObserver = player?.observe(\.rate, options: [.new, .old]) { [weak self] player, change in
             guard let newRate = change.newValue, let oldRate = change.oldValue else { return }
-            // 只在狀態真正改變時發送（避免重複發送）
+            // Only send when state actually changes (avoid duplicates)
             let wasPlaying = oldRate > 0
             let isPlaying = newRate > 0
             if wasPlaying != isPlaying {
@@ -221,24 +232,25 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         }
     }
 
-    /// 觀察 AVQueuePlayer 的 currentItem 變化（自動換集時觸發）
+    /// Observes queue item changes for auto-advancement.
     private func observeQueueItemChange() {
         currentItemObserver?.invalidate()
         currentItemObserver = player?.observe(\.currentItem, options: [.new, .old]) { [weak self] _, change in
-            // 確保是真的換了一個 item（不是 nil → item 的初始化）
+            // Ensure item actually changed (not nil → item initialization)
             guard change.oldValue != nil, change.newValue != nil else { return }
             AppLogger.player.debug("Player currentItem changed")
             self?.observeItemPlaybackState()
         }
     }
 
+    /// Rebuilds queue starting from the specified index.
     func rebuildQueue(from urls: [URL], startingAt index: Int) {
         guard index >= 0 && index < urls.count else { return }
 
-        // 移除所有項目
+        // Remove all items
         player?.removeAllItems()
 
-        // 從指定索引開始建立新的播放列表
+        // Build new playlist starting from specified index
         for i in index..<urls.count {
             let item = AVPlayerItem(url: urls[i])
             player?.insert(item, after: nil)
@@ -247,6 +259,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         observeItemPlaybackState()
     }
 
+    /// Advances to the next item in queue.
     func advanceToNextItem() {
         player?.advanceToNextItem()
         observeItemPlaybackState()
@@ -254,6 +267,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Media Options
 
+    /// Retrieves available audio and subtitle options.
     func getMediaOptions() async -> MediaSelectionOptions? {
         guard let currentItem = player?.currentItem else { return nil }
 
@@ -285,6 +299,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         return MediaSelectionOptions(audioOptions: audioOptions, subtitleOptions: subtitleOptions)
     }
 
+    /// Selects audio or subtitle track by locale.
     func selectMediaOption(type: MediaSelectionType, locale: Locale?) async {
         guard let currentItem = player?.currentItem else { return }
 
@@ -306,6 +321,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
 
     // MARK: - Time Observation
 
+    /// Starts periodic time observation at the specified interval.
     func startTimeObservation(interval: TimeInterval) {
         guard let player = player else { return }
 
@@ -320,6 +336,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
         }
     }
 
+    /// Stops periodic time observation.
     func stopTimeObservation() {
         guard let player = player, let token = timeObserverToken else { return }
         player.removeTimeObserver(token)
@@ -329,12 +346,12 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     // MARK: - Private Methods
 
     private func observeItemPlaybackState() {
-        // 清除舊的觀察者
+        // Clear old observers
         clearItemObservers()
 
         guard let currentItem = player?.currentItem else { return }
 
-        // 觀察播放狀態
+        // Observe playback status
         statusObserver = currentItem.observe(\.status, options: [.initial, .new]) { [weak self] item, _ in
             let status: PlaybackItemStatus
             switch item.status {
@@ -344,7 +361,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             case .readyToPlay:
                 AppLogger.player.debug("Current Item status: readyToPlay. Current Item \(currentItem.description)")
                 status = .readyToPlay
-                // 發送時長
+                // Send duration
                 if item.duration.isNumeric {
                     self?.durationSubject.send(CMTimeGetSeconds(item.duration))
                 }
@@ -358,7 +375,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             self?.itemStatusSubject.send(status)
         }
 
-        // 觀察緩衝狀態
+        // Observe buffering state
         isPlaybackBufferEmptyObserver = currentItem.observe(\.isPlaybackBufferEmpty) { [weak self] item, _ in
             if item.isPlaybackBufferEmpty {
                 self?.bufferingSubject.send(.bufferEmpty)
@@ -377,7 +394,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
             }
         }
 
-        // 觀察播放結束
+        // Observe playback end
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handlePlaybackEnd),
@@ -444,7 +461,7 @@ extension PlayerService: AVPictureInPictureControllerDelegate {
         restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
     ) {
         AppLogger.player.debug("PiP restore UI requested")
-        // 儲存 completion handler，等 UI 恢復後呼叫
+        // Store completion handler, call after UI is restored
         restoreUICompletionHandler = completionHandler
         restoreUISubject.send()
     }

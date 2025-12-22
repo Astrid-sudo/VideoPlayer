@@ -8,8 +8,7 @@
 import Foundation
 import Combine
 
-/// 媒體選項（字幕/音軌）業務邏輯
-/// 依賴 PlayerServiceProtocol，不直接依賴 AVFoundation
+/// Handles audio track and subtitle selection logic.
 final class MediaOptionsInteractor {
 
     // MARK: - Dependencies
@@ -35,7 +34,7 @@ final class MediaOptionsInteractor {
 
     // MARK: - Public Methods
 
-    /// 選擇媒體選項（音軌或字幕）
+    /// Selects an audio track or subtitle option.
     func selectOption(type: MediaOptionType, index: Int) {
         guard let mediaOption = mediaOption else { return }
 
@@ -69,7 +68,7 @@ final class MediaOptionsInteractor {
         }
     }
 
-    /// 重新載入媒體選項（當切換影片時呼叫）
+    /// Reloads media options when video changes.
     func reloadOptions() {
         loadMediaOptions()
     }
@@ -77,7 +76,7 @@ final class MediaOptionsInteractor {
     // MARK: - Private Methods
 
     private func setupBindings() {
-        // 當播放項目狀態變為 readyToPlay 時，載入媒體選項
+        // Load media options when item becomes ready to play
         playerService.itemStatusPublisher
             .filter { $0 == .readyToPlay }
             .receive(on: DispatchQueue.main)
@@ -110,7 +109,7 @@ final class MediaOptionsInteractor {
                     avMediaCharacteristicLegible: legibleOptions
                 )
 
-                // 重置選擇
+                // Reset selection
                 selectedAudioIndex = nil
                 selectedSubtitleIndex = nil
             }

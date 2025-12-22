@@ -8,8 +8,7 @@
 import MediaPlayer
 import UIKit
 
-/// 遠程控制服務實作
-/// 封裝 MPRemoteCommandCenter 和 MPNowPlayingInfoCenter，依賴 MediaPlayer（最外層）
+/// Wraps MPRemoteCommandCenter and MPNowPlayingInfoCenter for remote control.
 final class RemoteControlService: RemoteControlServiceProtocol {
 
     // MARK: - Private Properties
@@ -29,10 +28,11 @@ final class RemoteControlService: RemoteControlServiceProtocol {
 
     // MARK: - RemoteControlServiceProtocol
 
+    /// Configures remote control command handlers.
     func setupCommands(handlers: RemoteCommandHandlers) {
         self.handlers = handlers
 
-        // 移除舊的 targets
+        // Remove old targets
         removeAllTargets()
 
         // Play
@@ -97,6 +97,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
         }
     }
 
+    /// Updates Now Playing info on lock screen and Control Center.
     func updateNowPlayingInfo(_ info: NowPlayingInfo) {
         var nowPlayingInfo = [String: Any]()
 
@@ -118,13 +119,13 @@ final class RemoteControlService: RemoteControlServiceProtocol {
 
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = info.playbackRate
 
-        // 處理 Artwork
+        // Handle Artwork
         if let artwork = info.artwork,
            let image = UIImage(data: artwork.imageData) {
             let mpArtwork = MPMediaItemArtwork(boundsSize: artwork.size) { _ in image }
             nowPlayingInfo[MPMediaItemPropertyArtwork] = mpArtwork
         } else if info.usePlaceholderArtwork {
-            // 生成預設 Artwork
+            // Generate placeholder artwork
             if let placeholderImage = createPlaceholderImage() {
                 let size = CGSize(width: 300, height: 300)
                 let mpArtwork = MPMediaItemArtwork(boundsSize: size) { _ in placeholderImage }
@@ -142,7 +143,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
 
         let renderer = UIGraphicsImageRenderer(size: size)
         return renderer.image { context in
-            // 漸層背景
+            // Gradient background
             let colors = [UIColor.systemBlue.cgColor, UIColor.systemPurple.cgColor]
             let gradient = CGGradient(
                 colorsSpace: CGColorSpaceCreateDeviceRGB(),
@@ -159,7 +160,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
                 )
             }
 
-            // 播放圖示
+            // Play icon
             let playIconSize: CGFloat = 80
             let playIconRect = CGRect(
                 x: (size.width - playIconSize) / 2,
@@ -176,6 +177,7 @@ final class RemoteControlService: RemoteControlServiceProtocol {
         }
     }
 
+    /// Clears Now Playing info from lock screen.
     func clearNowPlayingInfo() {
         nowPlayingInfoCenter.nowPlayingInfo = nil
     }

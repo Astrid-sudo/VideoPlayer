@@ -18,13 +18,12 @@ struct PlayerView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: PlayerUIView, context: Context) {
-        // 不需要更新，player 已經透過 layer 連接
     }
 }
 
 // MARK: - PlayerUIView
 
-class PlayerUIView: UIView {
+final class PlayerUIView: UIView {
 
     // Override the property to make AVPlayerLayer the view's backing layer
     override class var layerClass: AnyClass {

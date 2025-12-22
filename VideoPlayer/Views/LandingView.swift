@@ -7,10 +7,12 @@
 
 import SwiftUI
 
+/// Navigation destination for the app.
 enum NavigationDestination: Hashable {
     case player
 }
 
+/// App entry point with navigation to video player.
 struct LandingView: View {
     @State private var navigationPath = NavigationPath()
 

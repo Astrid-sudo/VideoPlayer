@@ -13,7 +13,7 @@ struct PlaylistItemView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail (預設圖示)
+            // Thumbnail placeholder
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(LinearGradient.appBackground)
@@ -47,6 +47,7 @@ struct PlaylistItemView: View {
 // MARK: - App Gradient
 
 extension LinearGradient {
+    /// App-wide gradient background.
     static let appBackground = LinearGradient(
         colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.6)],
         startPoint: .topLeading,

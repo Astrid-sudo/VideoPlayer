@@ -9,8 +9,7 @@ import AVFoundation
 import Combine
 import SwiftUI
 
-/// 影片播放器 ViewModel
-/// 協調 Managers，管理 UI 狀態
+/// Central ViewModel that coordinates interactors and exposes UI state.
 final class NowPlayingViewModel: ObservableObject {
 
     // MARK: - UI State (Published)
@@ -105,18 +104,22 @@ final class NowPlayingViewModel: ObservableObject {
     }
     // MARK: - Playback Control
 
+    /// Toggles between play and pause states.
     func togglePlay() {
         playbackInteractor.togglePlay()
     }
 
+    /// Starts playback.
     func playPlayer() {
         playbackInteractor.play()
     }
 
+    /// Pauses playback.
     func pausePlayer() {
         playbackInteractor.pause()
     }
 
+    /// Skips forward or backward by the specified seconds.
     func jumpToTime(_ jumpTimeType: JumpTimeType) {
         switch jumpTimeType {
         case .forward(let seconds):
@@ -127,11 +130,13 @@ final class NowPlayingViewModel: ObservableObject {
         updateNowPlayingInfo()
     }
 
+    /// Seeks to position based on slider value (0.0 to 1.0).
     func slideToTime(_ sliderValue: Double) {
         let targetTime = durationSeconds * sliderValue
         playbackInteractor.seek(to: targetTime)
     }
 
+    /// Handles slider release; resumes playback if buffered.
     func sliderTouchEnded(_ sliderValue: Double) {
         if sliderValue >= 1.0 {
             playbackInteractor.pause()
@@ -143,6 +148,7 @@ final class NowPlayingViewModel: ObservableObject {
         }
     }
 
+    /// Adjusts playback speed.
     func adjustSpeed(_ speedButtonType: SpeedButtonType) {
         playbackInteractor.setSpeed(speedButtonType.speedRate)
         playSpeedRate = speedButtonType.speedRate
@@ -151,11 +157,13 @@ final class NowPlayingViewModel: ObservableObject {
 
     // MARK: - Playlist Control
 
+    /// Plays video at the specified index.
     func playVideo(at index: Int) {
         playbackInteractor.playVideo(at: index)
         updateNowPlayingInfo()
     }
 
+    /// Advances to the next video in playlist.
     func playNextVideo() {
         playbackInteractor.playNextVideo()
         updateNowPlayingInfo()
@@ -163,23 +171,26 @@ final class NowPlayingViewModel: ObservableObject {
 
     // MARK: - Media Options
 
+    /// Selects audio track or subtitle at the specified index.
     func selectMediaOption(mediaOptionType: MediaOptionType, index: Int) {
         mediaOptionsInteractor.selectOption(type: mediaOptionType, index: index)
     }
 
     // MARK: - Picture in Picture
 
+    /// Starts Picture in Picture mode.
     func startPictureInPicture() {
         layerConnector.startPictureInPicture()
     }
 
+    /// Stops Picture in Picture mode.
     func stopPictureInPicture() {
         layerConnector.stopPictureInPicture()
     }
 
     // MARK: - Player Connection
 
-    /// 連接 PlayerView 的 layer 到播放器
+    /// Connects AVPlayerLayer from PlayerView to the player.
     func connectPlayerLayer(_ layer: AVPlayerLayer) {
         layerConnector.connect(layer: layer)
     }
@@ -253,7 +264,7 @@ final class NowPlayingViewModel: ObservableObject {
         layerConnector.restoreUIPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
-                // UI 已經恢復，通知 service
+                // UI restored, notify service
                 self?.layerConnector.pictureInPictureUIRestored()
             }
             .store(in: &cancellables)

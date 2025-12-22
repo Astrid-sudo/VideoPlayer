@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// Video metadata model.
 struct Video: Identifiable, Hashable {
     /// Use URL as stable ID to avoid generating different UUIDs on each instance creation
     var id: String { url }
@@ -49,11 +50,5 @@ extension Video {
 			url: "https://devstreaming-cdn.apple.com/videos/streaming/examples/adv_dv_atmos/main.m3u8",
 			description: "4K Dolby Vision with multi-language subtitles"
 		)
-		// Sintel - 目前 resource unavailable，留待 error handling 測試用
-		// Video(
-		// 	title: "Sintel",
-		// 	url: "https://cdn.bitmovin.com/content/assets/sintel/hls/playlist.m3u8",
-		// 	description: "Blender Foundation open movie - Fantasy short film"
-		// )
 	]
 }
