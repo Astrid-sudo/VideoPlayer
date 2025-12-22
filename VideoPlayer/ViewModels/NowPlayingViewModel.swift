@@ -54,7 +54,7 @@ final class NowPlayingViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private var cancellables = Set<AnyCancellable>()
-    private var durationSeconds: TimeInterval = 0
+    private(set) var durationSeconds: TimeInterval = 0
 
     // MARK: - Initialization
 
