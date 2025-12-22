@@ -158,6 +158,8 @@ final class RemoteControlService: RemoteControlServiceProtocol {
                     end: CGPoint(x: size.width, y: size.height),
                     options: []
                 )
+            } else {
+                AppLogger.remoteControl.warning("Failed to create gradient for placeholder image")
             }
 
             // Play icon
@@ -173,6 +175,8 @@ final class RemoteControlService: RemoteControlServiceProtocol {
             if let playIcon = UIImage(systemName: "play.circle.fill", withConfiguration: config) {
                 playIcon.withTintColor(.white, renderingMode: .alwaysTemplate)
                     .draw(in: playIconRect, blendMode: .normal, alpha: 0.8)
+            } else {
+                AppLogger.remoteControl.warning("Failed to create play icon for placeholder image")
             }
         }
     }

@@ -11,8 +11,15 @@ enum URLOpener {
 
     /// Open system Settings app
     static func openSettings() {
-        if let url = URL(string: "App-Prefs:") {
-            UIApplication.shared.open(url)
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            AppLogger.ui.error("Failed to create Settings URL")
+            return
+        }
+
+        UIApplication.shared.open(url) { success in
+            if !success {
+                AppLogger.ui.error("Failed to open Settings app")
+            }
         }
     }
 }
