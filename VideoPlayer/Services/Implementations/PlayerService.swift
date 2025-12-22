@@ -196,7 +196,14 @@ final class PlayerService: NSObject, PlayerServiceProtocol, PlayerLayerConnectab
     /// Seeks to the specified time in seconds.
     func seek(to seconds: TimeInterval) {
         let time = CMTime(seconds: seconds, preferredTimescale: 1)
-        player?.seek(to: time)
+        player?.seek(to: time) { [weak self] _ in
+            // After seek completes, send the current time (for paused state updates)
+            DispatchQueue.main.async {
+                if let currentTime = self?.currentItemCurrentTime {
+                    self?.timeSubject.send(currentTime)
+                }
+            }
+        }
     }
 
     /// Sets playback rate.

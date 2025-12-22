@@ -36,6 +36,7 @@ struct PlaylistItemView: View {
                     .foregroundColor(.secondary)
                     .lineLimit(2)
             }
+			Spacer()
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)

@@ -144,16 +144,8 @@ struct NowPlayingView: View {
                 .frame(height: height)
                 .background(Color.black)
 
-            // Loading Indicator (always visible when loading)
-            if viewModel.playerState == .loading {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
-            }
-
-            // Player Controls (hidden when loading)
-            if viewModel.playerState != .loading {
-                PlayerControlView(
+            // Player Controls (always visible, loading indicator is inside)
+            PlayerControlView(
                     viewModel: viewModel,
                     isFullscreen: isFullscreenMode,
                     onUserInteraction: {
@@ -167,7 +159,6 @@ struct NowPlayingView: View {
                 .opacity(showControls ? 1 : 0)
                 .allowsHitTesting(showControls)
                 .animation(.easeInOut(duration: 0.3), value: showControls)
-            }
         }
         .onTapGesture {
             showControls.toggle()

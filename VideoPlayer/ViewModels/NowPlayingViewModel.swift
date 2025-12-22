@@ -321,7 +321,7 @@ final class NowPlayingViewModel: ObservableObject {
             AppLogger.player.error("Playback failed: \(playerError)")
             newState = .failed(playerError)
         case .readyToPlay:
-            if bufferingState == .bufferEmpty {
+            if isPlaying && bufferingState == .bufferEmpty {
                 newState = .loading
             } else if isPlaying {
                 newState = .playing

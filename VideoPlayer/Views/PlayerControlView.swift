@@ -89,8 +89,16 @@ struct PlayerControlView: View {
     private var centerPlayButton: some View {
         switch viewModel.playerState {
         case .loading:
-            // Loading state handled by NowPlayingView
-            EmptyView()
+            // Loading indicator at play button position, tappable to pause
+            Button(action: {
+                viewModel.pausePlayer()
+                onUserInteraction?()
+            }) {
+                ProgressView()
+                    .scaleEffect(2.0)
+                    .tint(.white)
+                    .frame(width: 60, height: 60)
+            }
 
         case .playing, .paused:
             HStack(spacing: 60) {
