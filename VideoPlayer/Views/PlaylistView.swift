@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct PlaylistView: View {
     @ObservedObject var viewModel: NowPlayingViewModel
@@ -27,7 +28,7 @@ struct PlaylistView: View {
                         )
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            viewModel.playVideo(at: index)
+                            viewModel.playVideoAtIndexSubject.send(index)
                         }
 
                         if index < viewModel.videos.count - 1 {

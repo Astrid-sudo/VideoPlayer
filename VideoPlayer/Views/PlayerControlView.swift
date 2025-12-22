@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVKit
+import Combine
 
 /// Overlay view containing playback controls.
 struct PlayerControlView: View {
@@ -93,7 +94,7 @@ struct PlayerControlView: View {
         case .loading:
             // Loading indicator at play button position, tappable to pause
             Button(action: {
-                viewModel.pausePlayer()
+                viewModel.pauseSubject.send()
                 onUserInteraction?()
             }) {
                 ProgressView()
@@ -106,7 +107,7 @@ struct PlayerControlView: View {
             HStack(spacing: 60) {
                 // Backward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.backward(10))
+                    viewModel.jumpTimeSubject.send(.backward(10))
                     onUserInteraction?()
                 }) {
                     Image(systemName: "gobackward.10")
@@ -116,7 +117,7 @@ struct PlayerControlView: View {
 
                 // Play/Pause
                 Button(action: {
-                    viewModel.togglePlay()
+                    viewModel.togglePlaySubject.send()
                     onUserInteraction?()
                 }) {
                     Image(systemName: viewModel.playerState == .playing ? "pause.circle.fill" : "play.circle.fill")
@@ -126,7 +127,7 @@ struct PlayerControlView: View {
 
                 // Forward 10 seconds
                 Button(action: {
-                    viewModel.jumpToTime(.forward(10))
+                    viewModel.jumpTimeSubject.send(.forward(10))
                     onUserInteraction?()
                 }) {
                     Image(systemName: "goforward.10")
@@ -215,14 +216,14 @@ struct PlayerControlView: View {
                         guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         draggingProgress = progress
-                        viewModel.slideToTime(progress)
+                        viewModel.slideToTimeSubject.send(progress)
                         onUserInteraction?()
                     }
                     .onEnded { value in
                         guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         draggingProgress = progress
-                        viewModel.sliderTouchEnded(progress)
+                        viewModel.sliderTouchEndedSubject.send(progress)
                         onUserInteraction?()
                     }
             )
@@ -280,13 +281,13 @@ struct PlayerControlView: View {
                 title: Text("speed.title".localized),
                 buttons: [
                     .default(Text("0.5x")) {
-                        viewModel.adjustSpeed(.slow)
+                        viewModel.adjustSpeedSubject.send(.slow)
                     },
                     .default(Text("speed.normal".localized)) {
-                        viewModel.adjustSpeed(.normal)
+                        viewModel.adjustSpeedSubject.send(.normal)
                     },
                     .default(Text("1.5x")) {
-                        viewModel.adjustSpeed(.fast)
+                        viewModel.adjustSpeedSubject.send(.fast)
                     },
                     .cancel(Text("common.cancel".localized))
                 ]
@@ -298,7 +299,7 @@ struct PlayerControlView: View {
 
     private var nextEpisodeButton: some View {
         ControlIconButton(iconName: "forward.end") {
-            viewModel.playNextVideo()
+            viewModel.playNextVideoSubject.send()
             onUserInteraction?()
         }
     }
@@ -307,7 +308,7 @@ struct PlayerControlView: View {
 
     private var pipButton: some View {
         ControlIconButton(iconName: "pip.enter") {
-            viewModel.startPictureInPicture()
+            viewModel.startPiPSubject.send()
             onUserInteraction?()
         }
         .opacity(viewModel.isPiPAvailable ? 1.0 : 0.5)
@@ -359,7 +360,7 @@ struct MediaOptionsSheet: View {
                         options: mediaOption.avMediaCharacteristicAudible,
                         selectedIndex: viewModel.selectedAudioIndex
                     ) { index in
-                        viewModel.selectMediaOption(mediaOptionType: .audio, index: index)
+                        viewModel.selectMediaOptionSubject.send((.audio, index))
                         dismiss()
                     }
                 }
@@ -372,7 +373,7 @@ struct MediaOptionsSheet: View {
                         options: mediaOption.avMediaCharacteristicLegible,
                         selectedIndex: viewModel.selectedSubtitleIndex
                     ) { index in
-                        viewModel.selectMediaOption(mediaOptionType: .subtitle, index: index)
+                        viewModel.selectMediaOptionSubject.send((.subtitle, index))
                         dismiss()
                     }
                 }
