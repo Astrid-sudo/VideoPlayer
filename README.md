@@ -6,6 +6,23 @@
 
 An iOS HLS video player built with SwiftUI, featuring custom controls, playlist management, Picture-in-Picture, and lock screen integration.
 
+## Demo
+
+| Seek Bar | Picture-in-Picture | Lock Screen |
+|:--------:|:------------------:|:-----------:|
+| ![Seek Bar](Assets/demo-seek-bar.gif) | ![PiP](Assets/demo-pip.gif) | ![Lock Screen](Assets/demo-lock-screen.gif) |
+| Draggable knob with time preview | Floating video window | Now Playing & Control Center |
+
+| Playlist | Fullscreen | Audio/Subtitle |
+|:--------:|:----------:|:--------------:|
+| ![Playlist](Assets/demo-playlist.gif) | ![Fullscreen](Assets/demo-fullscreen.gif) | ![Media Options](Assets/demo-media-options.gif) |
+| Tap to switch videos | Rotation support | Track selection |
+
+| Back Button Navigation |
+|:----------------------:|
+| ![Back Navigation](Assets/demo-back-navigation.gif) |
+| Fullscreen → Back (exit fullscreen) → Back (return to landing & stop playback) |
+
 ## Features
 
 **Playback**
