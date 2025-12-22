@@ -39,9 +39,9 @@ struct MediaOptionsInteractorTests {
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
 
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        let loaded = await waitUntil { sut.mediaOption != nil }
 
-        #expect(sut.mediaOption != nil)
+        #expect(loaded, "mediaOption should be loaded")
         #expect(sut.mediaOption?.avMediaCharacteristicAudible.count == 2)
         #expect(sut.mediaOption?.avMediaCharacteristicLegible.count == 2)
     }
@@ -52,7 +52,7 @@ struct MediaOptionsInteractorTests {
 
         // Load and select options first
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
         sut.selectOption(type: .audio, index: 1)
         sut.selectOption(type: .subtitle, index: 1)
         #expect(sut.selectedAudioIndex == 1)
@@ -60,7 +60,7 @@ struct MediaOptionsInteractorTests {
 
         // Trigger readyToPlay again (simulate video switch)
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.selectedAudioIndex == nil }
 
         // Selections should be reset
         #expect(sut.selectedAudioIndex == nil)
@@ -73,7 +73,7 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .audio, index: 1)
 
@@ -84,21 +84,20 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .audio, index: 1)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { mockPlayer.selectMediaOptionType != nil }
 
         #expect(mockPlayer.selectMediaOptionType == .audio)
-        let locale = mockPlayer.selectMediaOptionLocale as? Locale
-        #expect(locale?.identifier == "ja")
+        #expect(mockPlayer.selectMediaOptionLocale?.identifier == "ja")
     }
 
     @Test func selectAudioOptionOutOfBoundsDoesNotUpdate() async throws {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .audio, index: 10)
 
@@ -109,7 +108,7 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .audio, index: -1)
 
@@ -122,7 +121,7 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .subtitle, index: 1)
 
@@ -133,21 +132,20 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .subtitle, index: 1)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { mockPlayer.selectMediaOptionType != nil }
 
         #expect(mockPlayer.selectMediaOptionType == .subtitle)
-        let locale = mockPlayer.selectMediaOptionLocale as? Locale
-        #expect(locale?.identifier == "zh-Hant")
+        #expect(mockPlayer.selectMediaOptionLocale?.identifier == "zh-Hant")
     }
 
     @Test func selectSubtitleOptionOutOfBoundsDoesNotUpdate() async throws {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         sut.selectOption(type: .subtitle, index: 10)
 
@@ -160,7 +158,7 @@ struct MediaOptionsInteractorTests {
         let (sut, mockPlayer) = makeSUT()
         mockPlayer.stubbedMediaOptions = Self.sampleMediaOptions
         mockPlayer.itemStatusSubject.send(.readyToPlay)
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption != nil }
 
         // Change stubbed options
         mockPlayer.stubbedMediaOptions = MediaSelectionOptions(
@@ -169,7 +167,7 @@ struct MediaOptionsInteractorTests {
         )
 
         sut.reloadOptions()
-        try await Task.sleep(for: .milliseconds(100))
+        _ = await waitUntil { sut.mediaOption?.avMediaCharacteristicAudible.count == 1 }
 
         #expect(sut.mediaOption?.avMediaCharacteristicAudible.count == 1)
         #expect(sut.mediaOption?.avMediaCharacteristicAudible.first?.displayName == "French")

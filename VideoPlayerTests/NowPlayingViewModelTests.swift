@@ -50,7 +50,7 @@ struct NowPlayingViewModelTests {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.itemStatusSubject.send(.unknown)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .loading }
 
         #expect(sut.playerState == .loading)
     }
@@ -60,7 +60,10 @@ struct NowPlayingViewModelTests {
         let testError = NSError(domain: "test", code: -1)
 
         mockPlayer.itemStatusSubject.send(.failed(testError))
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil {
+            if case .failed = sut.playerState { return true }
+            return false
+        }
 
         if case .failed = sut.playerState {
             // Expected
@@ -75,7 +78,7 @@ struct NowPlayingViewModelTests {
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.bufferEmpty)
         mockPlayer.isPlayingSubject.send(false)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .loading }
 
         #expect(sut.playerState == .loading)
     }
@@ -86,7 +89,7 @@ struct NowPlayingViewModelTests {
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
         mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .playing }
 
         #expect(sut.playerState == .playing)
     }
@@ -97,7 +100,7 @@ struct NowPlayingViewModelTests {
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
         mockPlayer.isPlayingSubject.send(false)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .paused }
 
         #expect(sut.playerState == .paused)
     }
@@ -111,37 +114,41 @@ struct NowPlayingViewModelTests {
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
         mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .playing }
         mockPlayer.reset()
 
         sut.sliderTouchEnded(1.0)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { mockPlayer.pauseCallCount == 1 }
 
         #expect(mockPlayer.pauseCallCount == 1)
     }
 
     @Test func sliderTouchEndedAtMaxValueDoesNotPlay() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
+        _ = sut
 
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
-        try await Task.sleep(for: .milliseconds(50))
+        // Give time for subscription to process
+        try await Task.sleep(for: .milliseconds(100))
         mockPlayer.reset()
 
         sut.sliderTouchEnded(1.0)
-        try await Task.sleep(for: .milliseconds(50))
+        // Wait and verify no play was called
+        try await Task.sleep(for: .milliseconds(100))
 
         #expect(mockPlayer.playCallCount == 0)
     }
 
     @Test func sliderTouchEndedPlaysWhenBufferReady() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
+        _ = sut
 
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
-        try await Task.sleep(for: .milliseconds(50))
+        try await Task.sleep(for: .milliseconds(100))
         mockPlayer.reset()
 
         sut.sliderTouchEnded(0.5)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { mockPlayer.playCallCount == 1 }
 
         #expect(mockPlayer.playCallCount == 1)
     }
@@ -149,12 +156,22 @@ struct NowPlayingViewModelTests {
     @Test func sliderTouchEndedDoesNotPlayWhenBufferEmpty() async throws {
         let (sut, mockPlayer, _, _) = makeSUT()
 
+        // Set up ready state with buffer empty
+        mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.bufferEmpty)
+        mockPlayer.isPlayingSubject.send(false)
+
+        // Wait for playerState to become loading (confirming bufferEmpty was processed)
+        let isLoading = await waitUntil { sut.playerState == .loading }
+        #expect(isLoading, "playerState should become .loading when buffer is empty")
+
+        // Additional delay to ensure all Combine subscriptions have propagated
         try await Task.sleep(for: .milliseconds(50))
         mockPlayer.reset()
 
         sut.sliderTouchEnded(0.5)
-        try await Task.sleep(for: .milliseconds(50))
+        // Wait and verify no play was called
+        try await Task.sleep(for: .milliseconds(100))
 
         #expect(mockPlayer.playCallCount == 0)
     }
@@ -170,7 +187,10 @@ struct NowPlayingViewModelTests {
             code: NSURLErrorNotConnectedToInternet
         )
         mockPlayer.itemStatusSubject.send(.failed(networkError))
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil {
+            if case .failed = sut.playerState { return true }
+            return false
+        }
 
         // Verify we're in failed state with network error
         if case .failed(let error) = sut.playerState,
@@ -184,7 +204,7 @@ struct NowPlayingViewModelTests {
 
         // Simulate network recovery
         mockNetwork.simulateNetworkConnected()
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { mockPlayer.playCallCount == 1 }
 
         #expect(mockPlayer.rebuildQueueStartIndex == 0)
         #expect(mockPlayer.playCallCount == 1)
@@ -192,18 +212,21 @@ struct NowPlayingViewModelTests {
 
     @Test func networkRecoveryDoesNotReloadOnNonNetworkError() async throws {
         let (sut, mockPlayer, _, mockNetwork) = makeSUT()
-        _ = sut // Keep ViewModel alive
 
         // Simulate non-network error
         let genericError = NSError(domain: "test", code: -1)
         mockPlayer.itemStatusSubject.send(.failed(genericError))
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil {
+            if case .failed = sut.playerState { return true }
+            return false
+        }
 
         mockPlayer.reset()
 
         // Simulate network recovery
         mockNetwork.simulateNetworkConnected()
-        try await Task.sleep(for: .milliseconds(50))
+        // Wait and verify no reload was triggered
+        try await Task.sleep(for: .milliseconds(100))
 
         // Should not reload because error is not network-related
         #expect(mockPlayer.rebuildQueueStartIndex == nil)
@@ -217,14 +240,15 @@ struct NowPlayingViewModelTests {
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
         mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .playing }
         #expect(sut.playerState == .playing)
 
         mockPlayer.reset()
 
         // Simulate network recovery
         mockNetwork.simulateNetworkConnected()
-        try await Task.sleep(for: .milliseconds(50))
+        // Wait and verify no reload was triggered
+        try await Task.sleep(for: .milliseconds(100))
 
         // Should not reload when already playing
         #expect(mockPlayer.rebuildQueueStartIndex == nil)
@@ -237,7 +261,7 @@ struct NowPlayingViewModelTests {
 
         mockPlayer.durationSubject.send(0)
         mockPlayer.timeSubject.send(25)
-        try await Task.sleep(for: .milliseconds(50))
+        try await Task.sleep(for: .milliseconds(100))
 
         #expect(sut.playProgress == 0)
     }
@@ -248,7 +272,7 @@ struct NowPlayingViewModelTests {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.timeSubject.send(65) // 1:05
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.currentTime == "01:05 /" }
 
         #expect(sut.currentTime == "01:05 /")
     }
@@ -257,7 +281,7 @@ struct NowPlayingViewModelTests {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.durationSubject.send(3661) // 1:01:01
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.duration == "01:01:01" }
 
         #expect(sut.duration == "01:01:01")
     }
@@ -268,7 +292,7 @@ struct NowPlayingViewModelTests {
         let (sut, mockPlayer, _, _) = makeSUT()
 
         mockPlayer.isPiPPossibleSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.isPiPAvailable == true }
 
         #expect(sut.isPiPAvailable == true)
     }
@@ -277,13 +301,13 @@ struct NowPlayingViewModelTests {
 
     @Test func playerStateChangeUpdatesNowPlayingInfo() async throws {
         let (sut, mockPlayer, mockRemote, _) = makeSUT()
-        _ = sut // Keep ViewModel alive
         mockRemote.reset()
 
         mockPlayer.itemStatusSubject.send(.readyToPlay)
         mockPlayer.bufferingSubject.send(.likelyToKeepUp)
         mockPlayer.isPlayingSubject.send(true)
-        try await Task.sleep(for: .milliseconds(50))
+        _ = await waitUntil { sut.playerState == .playing }
+        _ = await waitUntil { mockRemote.updateNowPlayingInfoCallCount >= 1 }
 
         #expect(mockRemote.updateNowPlayingInfoCallCount >= 1)
     }
