@@ -177,7 +177,7 @@ struct PlayerControlView: View {
         GeometryReader { geometry in
             let knobSize: CGFloat = isDraggingSeekBar ? 24 : 12
             let trackHeight: CGFloat = isDraggingSeekBar ? 8 : 4
-            let progress = min(max(0, CGFloat(draggingProgress ?? Double(viewModel.playProgress))), 1)
+            let progress = min(max(0, draggingProgress ?? viewModel.playProgress), 1)
             let trackWidth = geometry.size.width
             let knobRadius = knobSize / 2
             // Clamp knob position to keep it within bounds
@@ -210,15 +210,17 @@ struct PlayerControlView: View {
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
                         isDraggingSeekBar = true
+                        guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                        draggingProgress = Double(progress)
-                        viewModel.slideToTime(Double(progress))
+                        draggingProgress = progress
+                        viewModel.slideToTime(progress)
                         onUserInteraction?()
                     }
                     .onEnded { value in
+                        guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
-                        draggingProgress = Double(progress)
-                        viewModel.sliderTouchEnded(Double(progress))
+                        draggingProgress = progress
+                        viewModel.sliderTouchEnded(progress)
                         isDraggingSeekBar = false
                         onUserInteraction?()
                     }
@@ -226,7 +228,7 @@ struct PlayerControlView: View {
             .onChange(of: viewModel.playProgress) { _, newProgress in
                 // Clear dragging state when playback catches up
                 if let target = draggingProgress,
-                   abs(Double(newProgress) - target) < 0.01 {
+                   abs(newProgress - target) < 0.01 {
                     draggingProgress = nil
                 }
             }
@@ -242,8 +244,7 @@ struct PlayerControlView: View {
 
     private var displayedCurrentTime: String {
         if let progress = draggingProgress {
-            let seconds = progress * viewModel.durationSeconds
-            return TimeManager.floatToTimecodeString(seconds: Float(seconds)) + " /"
+            return viewModel.timeString(for: progress)
         }
         return viewModel.currentTime
     }

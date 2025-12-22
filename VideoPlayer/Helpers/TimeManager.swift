@@ -10,20 +10,21 @@ import CoreMedia
 /// Utility for time formatting and calculation.
 enum TimeManager {
 
-    /// Transfer seconds(Float) to 00:00:00(String).
-    /// - Parameter seconds: The time will be transfered to timecode String.
-    /// - Returns: Timecode String. Would be like 00:00:00.
-    static func floatToTimecodeString(seconds: Float) -> String {
-        guard !(seconds.isNaN || seconds.isInfinite) else {
+    /// Converts seconds to timecode string (e.g., "00:00" or "00:00:00").
+    /// - Parameter seconds: The time in seconds.
+    /// - Returns: Formatted timecode string.
+    static func timecodeString(from seconds: TimeInterval) -> String {
+        guard seconds.isFinite else {
             return "00:00"
         }
         let time = Int(floor(seconds))
 
         let hours = time / 3600
         let minutes = time / 60 - hours * 60
-        let seconds = time % 60
-        let timecodeString = hours == .zero ? String(format: "%02ld:%02ld", minutes, seconds) : String(format: "%02ld:%02ld:%02ld", hours, minutes, seconds)
-        return timecodeString
+        let secs = time % 60
+        return hours == 0
+            ? String(format: "%02d:%02d", minutes, secs)
+            : String(format: "%02d:%02d:%02d", hours, minutes, secs)
     }
 
     /// Calculate if the time user wish to seek is valid or not.

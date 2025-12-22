@@ -16,7 +16,7 @@ final class NowPlayingViewModel: ObservableObject {
 
     @Published var currentTime: String = "00:00"
     @Published var duration: String = "00:00"
-    @Published var playProgress: Float = 0
+    @Published var playProgress: Double = 0
     @Published var playerState: PlayerState = .loading
     @Published var playSpeedRate: Float = 1.0
 
@@ -54,7 +54,7 @@ final class NowPlayingViewModel: ObservableObject {
     // MARK: - Private Properties
 
     private var cancellables = Set<AnyCancellable>()
-    private(set) var durationSeconds: TimeInterval = 0
+    private var durationSeconds: TimeInterval = 0
 
     // MARK: - Initialization
 
@@ -148,6 +148,12 @@ final class NowPlayingViewModel: ObservableObject {
         }
     }
 
+    /// Returns formatted time string for a given progress value (0.0 to 1.0).
+    func timeString(for progress: Double) -> String {
+        let seconds = progress * durationSeconds
+        return TimeManager.timecodeString(from: seconds) + " /"
+    }
+
     /// Adjusts playback speed.
     func adjustSpeed(_ speedButtonType: SpeedButtonType) {
         playbackInteractor.setSpeed(speedButtonType.speedRate)
@@ -213,7 +219,7 @@ final class NowPlayingViewModel: ObservableObject {
         playbackInteractor.$currentTime
             .receive(on: DispatchQueue.main)
             .sink { [weak self] time in
-                self?.currentTime = TimeManager.floatToTimecodeString(seconds: Float(time)) + " /"
+                self?.currentTime = TimeManager.timecodeString(from: time) + " /"
                 self?.updateProgress(currentTime: time)
             }
             .store(in: &cancellables)
@@ -223,7 +229,7 @@ final class NowPlayingViewModel: ObservableObject {
             .sink { [weak self] duration in
                 guard let self = self else { return }
                 self.durationSeconds = duration
-                self.duration = TimeManager.floatToTimecodeString(seconds: Float(duration))
+                self.duration = TimeManager.timecodeString(from: duration)
                 self.playbackInteractor.updateVideoDuration(duration, at: self.currentVideoIndex)
             }
             .store(in: &cancellables)
@@ -303,7 +309,7 @@ final class NowPlayingViewModel: ObservableObject {
 
     private func updateProgress(currentTime: TimeInterval) {
         guard durationSeconds > 0 else { return }
-        playProgress = Float(currentTime / durationSeconds)
+        playProgress = currentTime / durationSeconds
     }
 
     private func updatePlayerState(
