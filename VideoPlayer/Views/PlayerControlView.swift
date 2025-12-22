@@ -13,7 +13,7 @@ struct PlayerControlView: View {
     @ObservedObject var viewModel: NowPlayingViewModel
     @State private var showSpeedMenu = false
     @State private var showMediaOptionsSheet = false
-    @State private var isDraggingSeekBar = false
+    @GestureState private var isDraggingSeekBar = false
     @State private var draggingProgress: Double?
     var isFullscreen: Bool = false
     var onUserInteraction: (() -> Void)?
@@ -208,8 +208,10 @@ struct PlayerControlView: View {
             .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
+                    .updating($isDraggingSeekBar) { _, state, _ in
+                        state = true
+                    }
                     .onChanged { value in
-                        isDraggingSeekBar = true
                         guard geometry.size.width > 0 else { return }
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         draggingProgress = progress
@@ -221,7 +223,6 @@ struct PlayerControlView: View {
                         let progress = min(max(0, value.location.x / geometry.size.width), 1)
                         draggingProgress = progress
                         viewModel.sliderTouchEnded(progress)
-                        isDraggingSeekBar = false
                         onUserInteraction?()
                     }
             )
