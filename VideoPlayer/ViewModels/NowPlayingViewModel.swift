@@ -12,25 +12,40 @@ import SwiftUI
 /// Central ViewModel that coordinates interactors and exposes UI state.
 final class NowPlayingViewModel: ObservableObject {
 
-    // MARK: - UI State (Published)
+    // MARK: - Input (User Actions)
 
-    @Published var currentTime: String = "00:00"
-    @Published var duration: String = "00:00"
-    @Published var playProgress: Double = 0
-    @Published var playerState: PlayerState = .loading
-    @Published var playSpeedRate: Float = 1.0
+    let togglePlaySubject = PassthroughSubject<Void, Never>()
+    let playSubject = PassthroughSubject<Void, Never>()
+    let pauseSubject = PassthroughSubject<Void, Never>()
+    let jumpTimeSubject = PassthroughSubject<JumpTimeType, Never>()
+    let slideToTimeSubject = PassthroughSubject<Double, Never>()
+    let sliderTouchEndedSubject = PassthroughSubject<Double, Never>()
+    let adjustSpeedSubject = PassthroughSubject<SpeedButtonType, Never>()
+    let playVideoAtIndexSubject = PassthroughSubject<Int, Never>()
+    let playNextVideoSubject = PassthroughSubject<Void, Never>()
+    let selectMediaOptionSubject = PassthroughSubject<(MediaOptionType, Int), Never>()
+    let startPiPSubject = PassthroughSubject<Void, Never>()
+    let stopPiPSubject = PassthroughSubject<Void, Never>()
+
+    // MARK: - Output (UI State)
+
+    @Published private(set) var currentTime: String = "00:00"
+    @Published private(set) var duration: String = "00:00"
+    @Published private(set) var playProgress: Double = 0
+    @Published private(set) var playerState: PlayerState = .loading
+    @Published private(set) var playSpeedRate: Float = 1.0
 
     // Playlist
-    @Published var videos: [Video]
-    @Published var currentVideoIndex: Int = 0
+    @Published private(set) var videos: [Video]
+    @Published private(set) var currentVideoIndex: Int = 0
 
     // Media Options
-    @Published var mediaOption: MediaOption?
-    @Published var selectedAudioIndex: Int?
-    @Published var selectedSubtitleIndex: Int?
+    @Published private(set) var mediaOption: MediaOption?
+    @Published private(set) var selectedAudioIndex: Int?
+    @Published private(set) var selectedSubtitleIndex: Int?
 
     // PiP
-    @Published var isPiPAvailable: Bool = false
+    @Published private(set) var isPiPAvailable: Bool = false
 
     var currentVideo: Video? {
         guard currentVideoIndex >= 0 && currentVideoIndex < videos.count else { return nil }
@@ -102,99 +117,13 @@ final class NowPlayingViewModel: ObservableObject {
             videos: videos
         )
     }
-    // MARK: - Playback Control
-
-    /// Toggles between play and pause states.
-    func togglePlay() {
-        playbackInteractor.togglePlay()
-    }
-
-    /// Starts playback.
-    func playPlayer() {
-        playbackInteractor.play()
-    }
-
-    /// Pauses playback.
-    func pausePlayer() {
-        playbackInteractor.pause()
-    }
-
-    /// Skips forward or backward by the specified seconds.
-    func jumpToTime(_ jumpTimeType: JumpTimeType) {
-        switch jumpTimeType {
-        case .forward(let seconds):
-            playbackInteractor.skipForward(seconds)
-        case .backward(let seconds):
-            playbackInteractor.skipBackward(seconds)
-        }
-        updateNowPlayingInfo()
-    }
-
-    /// Seeks to position based on slider value (0.0 to 1.0).
-    func slideToTime(_ sliderValue: Double) {
-        let targetTime = durationSeconds * sliderValue
-        playbackInteractor.seek(to: targetTime)
-    }
-
-    /// Handles slider release; resumes playback if buffered.
-    func sliderTouchEnded(_ sliderValue: Double) {
-        if sliderValue >= 1.0 {
-            playbackInteractor.pause()
-            return
-        }
-
-        if playbackInteractor.bufferingState == .likelyToKeepUp {
-            playbackInteractor.play()
-        }
-    }
+    // MARK: - Public Methods
 
     /// Returns formatted time string for a given progress value (0.0 to 1.0).
     func timeString(for progress: Double) -> String {
         let seconds = progress * durationSeconds
         return TimeManager.timecodeString(from: seconds) + " /"
     }
-
-    /// Adjusts playback speed.
-    func adjustSpeed(_ speedButtonType: SpeedButtonType) {
-        playbackInteractor.setSpeed(speedButtonType.speedRate)
-        playSpeedRate = speedButtonType.speedRate
-        updateNowPlayingInfo()
-    }
-
-    // MARK: - Playlist Control
-
-    /// Plays video at the specified index.
-    func playVideo(at index: Int) {
-        playbackInteractor.playVideo(at: index)
-        updateNowPlayingInfo()
-    }
-
-    /// Advances to the next video in playlist.
-    func playNextVideo() {
-        playbackInteractor.playNextVideo()
-        updateNowPlayingInfo()
-    }
-
-    // MARK: - Media Options
-
-    /// Selects audio track or subtitle at the specified index.
-    func selectMediaOption(mediaOptionType: MediaOptionType, index: Int) {
-        mediaOptionsInteractor.selectOption(type: mediaOptionType, index: index)
-    }
-
-    // MARK: - Picture in Picture
-
-    /// Starts Picture in Picture mode.
-    func startPictureInPicture() {
-        layerConnector.startPictureInPicture()
-    }
-
-    /// Stops Picture in Picture mode.
-    func stopPictureInPicture() {
-        layerConnector.stopPictureInPicture()
-    }
-
-    // MARK: - Player Connection
 
     /// Connects AVPlayerLayer from PlayerView to the player.
     func connectPlayerLayer(_ layer: AVPlayerLayer) {
@@ -204,6 +133,120 @@ final class NowPlayingViewModel: ObservableObject {
     // MARK: - Private Methods
 
     private func setupBindings() {
+        setupInputBindings()
+        setupOutputBindings()
+    }
+
+    private func setupInputBindings() {
+        togglePlaySubject
+            .throttle(for: .milliseconds(300), scheduler: DispatchQueue.main, latest: false)
+            .sink { [weak self] in
+                self?.playbackInteractor.togglePlay()
+            }
+            .store(in: &cancellables)
+
+        playSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.playbackInteractor.play()
+            }
+            .store(in: &cancellables)
+
+        pauseSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.playbackInteractor.pause()
+            }
+            .store(in: &cancellables)
+
+        jumpTimeSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] jumpTimeType in
+                guard let self else { return }
+                switch jumpTimeType {
+                case .forward(let seconds):
+                    playbackInteractor.skipForward(seconds)
+                case .backward(let seconds):
+                    playbackInteractor.skipBackward(seconds)
+                }
+                updateNowPlayingInfo()
+            }
+            .store(in: &cancellables)
+
+        slideToTimeSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] sliderValue in
+                guard let self else { return }
+                let targetTime = durationSeconds * sliderValue
+                playbackInteractor.seek(to: targetTime)
+            }
+            .store(in: &cancellables)
+
+        sliderTouchEndedSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] sliderValue in
+                guard let self else { return }
+                if sliderValue >= 1.0 {
+                    playbackInteractor.pause()
+                    return
+                }
+                if playbackInteractor.bufferingState == .likelyToKeepUp {
+                    playbackInteractor.play()
+                }
+            }
+            .store(in: &cancellables)
+
+        adjustSpeedSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] speedButtonType in
+                guard let self else { return }
+                playbackInteractor.setSpeed(speedButtonType.speedRate)
+                playSpeedRate = speedButtonType.speedRate
+                updateNowPlayingInfo()
+            }
+            .store(in: &cancellables)
+
+        playVideoAtIndexSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] index in
+                guard let self else { return }
+                playbackInteractor.playVideo(at: index)
+                updateNowPlayingInfo()
+            }
+            .store(in: &cancellables)
+
+        playNextVideoSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                guard let self else { return }
+                playbackInteractor.playNextVideo()
+                updateNowPlayingInfo()
+            }
+            .store(in: &cancellables)
+
+        selectMediaOptionSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] mediaOptionType, index in
+                self?.mediaOptionsInteractor.selectOption(type: mediaOptionType, index: index)
+            }
+            .store(in: &cancellables)
+
+        startPiPSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.layerConnector.startPictureInPicture()
+            }
+            .store(in: &cancellables)
+
+        stopPiPSubject
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.layerConnector.stopPictureInPicture()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func setupOutputBindings() {
         // Combine itemStatus, bufferingState, isPlaying to determine playerState
         Publishers.CombineLatest3(
             playbackInteractor.$itemStatus,
@@ -277,16 +320,16 @@ final class NowPlayingViewModel: ObservableObject {
     }
 
     private func setupRemoteControlCallbacks() {
-        remoteControlInteractor.onPlay = { [weak self] in self?.playPlayer() }
-        remoteControlInteractor.onPause = { [weak self] in self?.pausePlayer() }
-        remoteControlInteractor.onTogglePlayPause = { [weak self] in self?.togglePlay() }
-        remoteControlInteractor.onNextTrack = { [weak self] in self?.playNextVideo() }
-        remoteControlInteractor.onSkipForward = { [weak self] seconds in self?.jumpToTime(.forward(seconds)) }
-        remoteControlInteractor.onSkipBackward = { [weak self] seconds in self?.jumpToTime(.backward(seconds)) }
+        remoteControlInteractor.onPlay = { [weak self] in self?.playSubject.send() }
+        remoteControlInteractor.onPause = { [weak self] in self?.pauseSubject.send() }
+        remoteControlInteractor.onTogglePlayPause = { [weak self] in self?.togglePlaySubject.send() }
+        remoteControlInteractor.onNextTrack = { [weak self] in self?.playNextVideoSubject.send() }
+        remoteControlInteractor.onSkipForward = { [weak self] seconds in self?.jumpTimeSubject.send(.forward(seconds)) }
+        remoteControlInteractor.onSkipBackward = { [weak self] seconds in self?.jumpTimeSubject.send(.backward(seconds)) }
         remoteControlInteractor.onSeekToPosition = { [weak self] position in
             guard let self = self, self.durationSeconds > 0 else { return }
             let progress = position / self.durationSeconds
-            self.slideToTime(progress)
+            self.slideToTimeSubject.send(progress)
         }
 
         remoteControlInteractor.setupCommands()

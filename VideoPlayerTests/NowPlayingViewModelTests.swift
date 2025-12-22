@@ -117,7 +117,7 @@ struct NowPlayingViewModelTests {
         _ = await waitUntil { sut.playerState == .playing }
         mockPlayer.reset()
 
-        sut.sliderTouchEnded(1.0)
+        sut.sliderTouchEndedSubject.send(1.0)
         _ = await waitUntil { mockPlayer.pauseCallCount == 1 }
 
         #expect(mockPlayer.pauseCallCount == 1)
@@ -132,7 +132,7 @@ struct NowPlayingViewModelTests {
         try await Task.sleep(for: .milliseconds(100))
         mockPlayer.reset()
 
-        sut.sliderTouchEnded(1.0)
+        sut.sliderTouchEndedSubject.send(1.0)
         // Wait and verify no play was called
         try await Task.sleep(for: .milliseconds(100))
 
@@ -147,7 +147,7 @@ struct NowPlayingViewModelTests {
         try await Task.sleep(for: .milliseconds(100))
         mockPlayer.reset()
 
-        sut.sliderTouchEnded(0.5)
+        sut.sliderTouchEndedSubject.send(0.5)
         _ = await waitUntil { mockPlayer.playCallCount == 1 }
 
         #expect(mockPlayer.playCallCount == 1)
@@ -169,7 +169,7 @@ struct NowPlayingViewModelTests {
         try await Task.sleep(for: .milliseconds(50))
         mockPlayer.reset()
 
-        sut.sliderTouchEnded(0.5)
+        sut.sliderTouchEndedSubject.send(0.5)
         // Wait and verify no play was called
         try await Task.sleep(for: .milliseconds(100))
 

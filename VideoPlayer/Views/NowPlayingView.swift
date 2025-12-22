@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 /// Main video player view with controls and playlist.
 struct NowPlayingView: View {
@@ -101,7 +102,7 @@ struct NowPlayingView: View {
         }
         .alert("alert.playbackError.title".localized, isPresented: $showPlaybackErrorAlert) {
             Button("alert.playbackError.continueNext".localized) {
-                viewModel.playNextVideo()
+                viewModel.playNextVideoSubject.send()
             }
         } message: {
             Text("alert.playbackError.message".localized)
