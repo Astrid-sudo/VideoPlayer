@@ -1,0 +1,122 @@
+# VideoPlayer
+
+[![Unit Tests](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml/badge.svg)](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml)
+![Platform](https://img.shields.io/badge/platform-iOS%2016+-blue)
+![Swift](https://img.shields.io/badge/Swift-5.9-orange)
+
+An iOS HLS video player built with SwiftUI, featuring custom controls, playlist management, Picture-in-Picture, and lock screen integration.
+
+## Features
+
+**Playback**
+- HLS streaming with custom play/pause, seek bar, and skip controls (±10s)
+- Playback speed adjustment (0.5x, 1.0x, 1.5x)
+- Draggable seek knob with real-time preview
+
+**Playlist**
+- Multi-video playlist with visual indicator
+- Auto-advancement with loop support
+- Tap to switch videos
+
+**Advanced**
+- Picture-in-Picture (PiP)
+- Lock screen & Control Center integration
+- Audio track and subtitle selection
+- Network error detection with auto-recovery
+
+**UX**
+- Fullscreen mode with orientation support
+- Auto-hiding controls
+- Loading and buffering indicators
+
+## Architecture
+
+```
+Views (SwiftUI)
+    ↓
+ViewModel (Input/Output pattern with Combine)
+    ↓
+Interactors (Business Logic)
+    ↓
+Services (Protocol-based)
+```
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Views** | UI presentation, user interactions |
+| **ViewModel** | Coordinates interactors, exposes reactive state via `@Published` |
+| **Interactors** | Business logic (Playback, MediaOptions, RemoteControl) |
+| **Services** | Framework wrappers (AVFoundation, MediaPlayer, Network) |
+
+**Key Patterns**
+- Protocol-based dependency injection for testability
+- Reactive data flow with Combine (`PassthroughSubject` for inputs, `@Published` for outputs)
+- Separation of concerns across layers
+
+## Project Structure
+
+```
+VideoPlayer/
+├── Views/               # SwiftUI views (6 files)
+├── ViewModels/          # NowPlayingViewModel
+├── Interactors/         # PlaybackInteractor, MediaOptionsInteractor, RemoteControlInteractor
+├── Services/
+│   ├── Protocols/       # Abstractions for DI
+│   └── Implementations/ # AVPlayer wrapper, AudioSession, RemoteControl, Network
+├── Models/              # Video, PlayerState, MediaOption, PlayerError
+└── Helpers/             # TimeManager, OrientationManager, Logger
+```
+
+## Testing
+
+- **Framework**: Swift Testing (`@Test`)
+- **Test Cases**: ~100 tests
+- **Approach**: Mock/Spy pattern with injected dependencies
+
+| Test Suite | Coverage |
+|------------|----------|
+| `NowPlayingViewModelTests` | State transitions, playlist, remote control |
+| `PlaybackInteractorTests` | Play/pause, seek, speed, queue management |
+| `MediaOptionsInteractorTests` | Audio/subtitle selection |
+| `TimeManagerTests` | Time formatting, edge cases |
+| `PlayerErrorTests` | Error classification |
+
+## CI/CD
+
+GitHub Actions runs on every PR to `main`:
+- Builds and tests on `macos-15` with iPhone 16 simulator
+- Uploads test artifacts on failure for debugging
+
+## Getting Started
+
+**Requirements**
+- Xcode 16+
+- iOS 16+
+
+**Run**
+```bash
+open VideoPlayer.xcodeproj
+# Select iPhone simulator or device, then Run (⌘R)
+```
+
+**Test**
+```bash
+xcodebuild test \
+  -project VideoPlayer.xcodeproj \
+  -scheme VideoPlayer \
+  -destination 'platform=iOS Simulator,name=iPhone 16'
+```
+
+## Known Issues & Notes
+
+**Device Rotation**
+- Orientation handling works correctly on physical devices
+- Simulator may have inconsistent rotation behavior — test on real device for accuracy
+
+**Debugger Warning**
+- When running with debugger attached, you may see:
+  ```
+  Hang detected: XXs (debugger attached, not reporting)
+  ```
+- This is expected and caused by the debugger — verified via Console/OSLog
+- Does not occur in release builds
