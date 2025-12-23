@@ -18,10 +18,10 @@ An iOS HLS video player built with SwiftUI, featuring custom controls, playlist 
 | ![Playlist](Assets/demo-playlist.gif) | ![Fullscreen](Assets/demo-fullscreen.gif) | ![Media Options](Assets/demo-media-options.gif) |
 | Tap to switch videos | Rotation support | Track selection |
 
-| Back Button Navigation |
-|:----------------------:|
-| ![Back Navigation](Assets/demo-back-navigation.gif) |
-| Fullscreen → Back (exit fullscreen) → Back (return to landing & stop playback) |
+| Back Button Navigation | Network Recovery |
+|:----------------------:|:----------------:|
+| ![Back Navigation](Assets/demo-back-navigation.gif) | ![Network Recovery](Assets/demo-network-recovery.gif) |
+| Fullscreen → Back (exit fullscreen) → Back (return to landing & stop playback) | Auto-resume when network reconnects |
 
 ## Features
 
