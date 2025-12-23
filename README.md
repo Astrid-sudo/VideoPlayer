@@ -1,8 +1,6 @@
 # VideoPlayer
 
 [![Unit Tests](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml/badge.svg)](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml)
-![Platform](https://img.shields.io/badge/platform-iOS%2016+-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 
 An iOS HLS video player built with SwiftUI, featuring custom controls, playlist management, Picture-in-Picture, and lock screen integration.
 
@@ -28,7 +26,7 @@ An iOS HLS video player built with SwiftUI, featuring custom controls, playlist 
 **Playback**
 - HLS streaming with custom play/pause, seek bar, and skip controls (±10s)
 - Playback speed adjustment (0.5x, 1.0x, 1.5x)
-- Draggable seek knob with real-time preview
+- Draggable seek knob
 
 **Playlist**
 - Multi-video playlist with visual indicator
@@ -45,6 +43,8 @@ An iOS HLS video player built with SwiftUI, featuring custom controls, playlist 
 - Fullscreen mode with orientation support
 - Auto-hiding controls
 - Loading and buffering indicators
+- Dark and Light mode support
+- Localization: English & Traditional Chinese
 
 ## Architecture
 
@@ -74,7 +74,7 @@ Services (Protocol-based)
 
 ```
 VideoPlayer/
-├── Views/               # SwiftUI views (6 files)
+├── Views/               # SwiftUI views
 ├── ViewModels/          # NowPlayingViewModel
 ├── Interactors/         # PlaybackInteractor, MediaOptionsInteractor, RemoteControlInteractor
 ├── Services/
@@ -87,7 +87,6 @@ VideoPlayer/
 ## Testing
 
 - **Framework**: Swift Testing (`@Test`)
-- **Test Cases**: ~100 tests
 - **Approach**: Mock/Spy pattern with injected dependencies
 
 | Test Suite | Coverage |
@@ -101,28 +100,8 @@ VideoPlayer/
 ## CI/CD
 
 GitHub Actions runs on every PR to `main`:
-- Builds and tests on `macos-15` with iPhone 16 simulator
-- Uploads test artifacts on failure for debugging
-
-## Getting Started
-
-**Requirements**
-- Xcode 16+
-- iOS 16+
-
-**Run**
-```bash
-open VideoPlayer.xcodeproj
-# Select iPhone simulator or device, then Run (⌘R)
-```
-
-**Test**
-```bash
-xcodebuild test \
-  -project VideoPlayer.xcodeproj \
-  -scheme VideoPlayer \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
-```
+- Builds and runs unit tests on `macos-15` with iPhone 16 simulator
+- Automatically uploads `.xcresult` bundle on test failure for debugging
 
 ## Known Issues & Notes
 
