@@ -1,7 +1,5 @@
 # VideoPlayer
 
-[![Unit Tests](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml/badge.svg)](https://github.com/Astrid-sudo/VideoPlayer/actions/workflows/test.yml)
-
 An iOS HLS video player built with SwiftUI, featuring custom controls, playlist management, Picture-in-Picture, and lock screen integration.
 
 ## Demo
@@ -38,6 +36,7 @@ An iOS HLS video player built with SwiftUI, featuring custom controls, playlist 
 - Lock screen & Control Center integration
 - Audio track and subtitle selection
 - Network error detection with auto-recovery
+- Proper memory management: ViewModel and player fully released when navigating back to landing page
 
 **UX**
 - Fullscreen mode with orientation support
