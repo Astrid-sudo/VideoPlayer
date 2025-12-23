@@ -114,4 +114,4 @@ GitHub Actions runs on every PR to `main`:
   Hang detected: XXs (debugger attached, not reporting)
   ```
 - This is expected and caused by the debugger — verified via Console/OSLog
-- Does not occur in release builds
+- Does not occur when debugger is not attached
